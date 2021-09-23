@@ -1,7 +1,9 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://trial/mat_blue.tres" type="Material" id=1]
 
 [sub_resource type="CylinderMesh" id=1]
 
 [node name="mesh_cylinder" type="MeshInstance"]
 mesh = SubResource( 1 )
-material/0 = null
+material/0 = ExtResource( 1 )

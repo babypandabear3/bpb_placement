@@ -13,15 +13,9 @@ _global_script_classes=[ {
 "class": "BPBP_Main",
 "language": "GDScript",
 "path": "res://addons/bpb_placement/bpbp_main.gd"
-}, {
-"base": "Spatial",
-"class": "BPB_Placement_Spatial",
-"language": "GDScript",
-"path": "res://addons/bpb_placement/bpbp_spatial.gd"
 } ]
 _global_script_class_icons={
-"BPBP_Main": "",
-"BPB_Placement_Spatial": ""
+"BPBP_Main": ""
 }
 
 [application]

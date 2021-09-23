@@ -37,3 +37,6 @@ func update_files(paths):
 func update_item_list():
 	for path in files:
 		item_list.add_item(path)
+
+func get_selected_item_list():
+	return item_list.get_item_text(item_list.get_selected_items()[0])
