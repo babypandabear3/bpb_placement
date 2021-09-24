@@ -2,19 +2,19 @@
 
 [ext_resource path="res://addons/bpb_placement/bpbp_tab.gd" type="Script" id=1]
 
-[node name="bpbp_tab" type="Panel"]
+[node name="bpbp_tab" type="HBoxContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-margin_left = 10.0
-margin_top = 10.0
-margin_right = 40.0
-margin_bottom = 40.0
+margin_right = 159.0
+margin_bottom = 600.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -39,6 +39,8 @@ text = "Size"
 margin_left = 89.0
 margin_right = 147.0
 margin_bottom = 24.0
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="HBoxContainer2" type="VBoxContainer" parent="VBoxContainer"]
 margin_top = 28.0
@@ -97,12 +99,16 @@ margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/VBoxContainer3"]
 margin_top = 46.0
@@ -119,12 +125,16 @@ margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/VBoxContainer3"]
 margin_top = 74.0
@@ -141,12 +151,16 @@ margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
 text = "1"
+caret_blink = true
+caret_blink_speed = 0.5
 
 [node name="btn_add" type="Button" parent="VBoxContainer"]
 margin_top = 176.0
@@ -154,10 +168,14 @@ margin_right = 159.0
 margin_bottom = 196.0
 text = "Add"
 
-[node name="ItemList" type="ItemList" parent="VBoxContainer"]
-margin_top = 200.0
-margin_right = 159.0
-margin_bottom = 400.0
+[node name="ItemList" type="ItemList" parent="."]
+margin_left = 163.0
+margin_right = 1024.0
+margin_bottom = 600.0
 rect_min_size = Vector2( 0, 200 )
+size_flags_horizontal = 3
+size_flags_vertical = 3
+max_columns = 10
+same_column_width = true
 
 [connection signal="button_up" from="VBoxContainer/btn_add" to="." method="_on_btn_add_button_up"]

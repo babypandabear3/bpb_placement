@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=2]
-
-[ext_resource path="res://addons/bpb_placement/bpbp_spatial.gd" type="Script" id=1]
-
-[node name="bpbp_spatial" type="Spatial"]
-script = ExtResource( 1 )
-library = [ "" ]

@@ -1,28 +1,42 @@
 tool
 extends EditorPlugin
 
-const SIDE_PANEL = preload("res://addons/bpb_placement/bpbp_main.tscn")
-var panel = SIDE_PANEL.instance()
+const DATAPATH = "res://addons/bpb_placement/data.tscn"
+const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
+
+var panel 
 
 var button_active : CheckButton
-
+var resource_preview 
+	
 func _enter_tree():
+	var file2Check = File.new()
+	if file2Check.file_exists(DATAPATH):
+		panel = load(DATAPATH).instance()
+	else:
+		panel = PANEL_DEFAULT.instance()
+		
 	button_active = CheckButton.new()
 	button_active.text = "BPB Placement"
 	button_active.connect("button_up", self, "toggle_panel")
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, button_active)
 	set_input_event_forwarding_always_enabled()
+	resource_preview = get_editor_interface().get_resource_previewer()
+	panel.set_plugin_node(self)
+	save_data()
 	
 func _exit_tree():
+	save_data()
 	if button_active.pressed:
 		hide_panel()
 	remove_control_from_container(CONTAINER_SPATIAL_EDITOR_MENU, button_active)
+	panel.queue_free()
 
 func show_panel():
-	add_control_to_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_SIDE_LEFT , panel)
+	add_control_to_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM , panel)
 	
 func hide_panel():
-	remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_SIDE_LEFT , panel)
+	remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM , panel)
 	
 func toggle_panel():
 	if button_active.pressed:
@@ -52,4 +66,7 @@ func forward_spatial_gui_input(camera, event):
 				
 	return false
 
-
+func save_data():
+	var packed_scene = PackedScene.new()
+	packed_scene.pack(panel)
+	ResourceSaver.save(DATAPATH, packed_scene)
