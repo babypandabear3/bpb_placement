@@ -1,7 +1,7 @@
 tool
 extends EditorPlugin
 
-const DATAPATH = "res://addons/bpb_placement/data.tscn"
+
 const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
 
 var panel 
@@ -10,40 +10,29 @@ var button_active : CheckButton
 var resource_preview 
 	
 func _enter_tree():
-	var file2Check = File.new()
-	if file2Check.file_exists(DATAPATH):
-		panel = load(DATAPATH).instance()
-	else:
-		panel = PANEL_DEFAULT.instance()
-		
-	button_active = CheckButton.new()
-	button_active.text = "BPB Placement"
-	button_active.connect("button_up", self, "toggle_panel")
-	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, button_active)
-	set_input_event_forwarding_always_enabled()
 	resource_preview = get_editor_interface().get_resource_previewer()
-	panel.set_plugin_node(self)
-	save_data()
+	panel = PANEL_DEFAULT.instance()
+	
+	add_control_to_bottom_panel(panel, "BPB Placement")
+	make_bottom_panel_item_visible(panel)
+	set_input_event_forwarding_always_enabled()
 	
 func _exit_tree():
-	save_data()
-	if button_active.pressed:
-		hide_panel()
-	remove_control_from_container(CONTAINER_SPATIAL_EDITOR_MENU, button_active)
+	#save_data()
+	hide_bottom_panel()
+	remove_control_from_bottom_panel(panel)
+	#hide_panel()
 	panel.queue_free()
 
+func _ready():
+	panel.set_plugin_node(self)
+	
 func show_panel():
 	add_control_to_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM , panel)
 	
 func hide_panel():
 	remove_control_from_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM , panel)
 	
-func toggle_panel():
-	if button_active.pressed:
-		show_panel()
-	else:
-		hide_panel()
-		
 func _intersect_with_colliders(camera, screen_point):
 	var from = camera.project_ray_origin(screen_point)
 	var dir = camera.project_ray_normal(screen_point)
@@ -56,7 +45,7 @@ func _intersect_with_colliders(camera, screen_point):
 func forward_spatial_gui_input(camera, event):
 	if (event is InputEventMouseButton and event.button_index == BUTTON_LEFT):
 		if event.is_pressed():
-			if button_active.pressed and panel.is_painting():
+			if panel.is_painting():
 				var pos = _intersect_with_colliders(camera, event.position)
 				var path = panel.get_selected_obj()
 				var obj = load(path).instance()
@@ -66,7 +55,3 @@ func forward_spatial_gui_input(camera, event):
 				
 	return false
 
-func save_data():
-	var packed_scene = PackedScene.new()
-	packed_scene.pack(panel)
-	ResourceSaver.save(DATAPATH, packed_scene)

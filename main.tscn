@@ -1,8 +1,8 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://trial/mesh_box.tscn" type="PackedScene" id=1]
-[ext_resource path="res://trial/mesh_cylinder.tscn" type="PackedScene" id=2]
-[ext_resource path="res://trial/mesh_sphere.tscn" type="PackedScene" id=3]
+[ext_resource path="res://trial/mesh_sphere.tscn" type="PackedScene" id=2]
+[ext_resource path="res://trial/mesh_cylinder.tscn" type="PackedScene" id=3]
 [ext_resource path="res://trial/mat_blue.tres" type="Material" id=4]
 
 [sub_resource type="CubeMesh" id=1]
@@ -11,22 +11,20 @@ size = Vector3( 100, 2, 100 )
 [sub_resource type="ConcavePolygonShape" id=2]
 data = PoolVector3Array( -50, 1, 50, 50, 1, 50, -50, -1, 50, 50, 1, 50, 50, -1, 50, -50, -1, 50, 50, 1, -50, -50, 1, -50, 50, -1, -50, -50, 1, -50, -50, -1, -50, 50, -1, -50, 50, 1, 50, 50, 1, -50, 50, -1, 50, 50, 1, -50, 50, -1, -50, 50, -1, 50, -50, 1, -50, -50, 1, 50, -50, -1, -50, -50, 1, 50, -50, -1, 50, -50, -1, -50, 50, 1, 50, -50, 1, 50, 50, 1, -50, -50, 1, 50, -50, 1, -50, 50, 1, -50, -50, -1, 50, 50, -1, 50, -50, -1, -50, 50, -1, 50, 50, -1, -50, -50, -1, -50 )
 
-[sub_resource type="SpatialMaterial" id=3]
+[sub_resource type="SphereMesh" id=3]
+
+[sub_resource type="CylinderMesh" id=4]
+
+[sub_resource type="SpatialMaterial" id=5]
 albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
 
-[sub_resource type="CubeMesh" id=4]
-material = SubResource( 3 )
-
-[sub_resource type="CylinderMesh" id=5]
-
-[sub_resource type="SphereMesh" id=6]
-
-[sub_resource type="SphereMesh" id=7]
+[sub_resource type="CubeMesh" id=6]
+material = SubResource( 5 )
 
 [node name="main" type="Spatial"]
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0939767, -0.274499, 0.160896 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.366139, -0.274497, 0.0743901 )
 mesh = SubResource( 1 )
 material/0 = null
 
@@ -35,74 +33,47 @@ material/0 = null
 [node name="CollisionShape" type="CollisionShape" parent="MeshInstance/StaticBody"]
 shape = SubResource( 2 )
 
-[node name="mesh_box" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -27.8697, 0.88844, 8.52027 )
+[node name="mesh_sphere" type="MeshInstance" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -15.1898, 0.725504, 27.4604 )
+mesh = SubResource( 3 )
+material/0 = ExtResource( 4 )
+
+[node name="mesh_sphere2" type="MeshInstance" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 10.9324, 0.725503, 20.2485 )
+mesh = SubResource( 3 )
+material/0 = ExtResource( 4 )
+
+[node name="mesh_sphere3" type="MeshInstance" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 21.3493, 0.725502, 9.1918 )
+mesh = SubResource( 3 )
+material/0 = ExtResource( 4 )
+
+[node name="mesh_cylinder" type="MeshInstance" parent="." instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -4.73268, 0.725501, 26.4723 )
 mesh = SubResource( 4 )
+material/0 = ExtResource( 4 )
 
-[node name="mesh_box2" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -13.8677, 0.888439, 23.5014 )
+[node name="mesh_cylinder2" type="MeshInstance" parent="." instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -9.80774, 0.725503, 21.5607 )
 mesh = SubResource( 4 )
+material/0 = ExtResource( 4 )
 
-[node name="mesh_box3" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.184057, 0.88844, 25.2168 )
+[node name="mesh_cylinder3" type="MeshInstance" parent="." instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -13.8875, 0.725501, 8.88135 )
 mesh = SubResource( 4 )
+material/0 = ExtResource( 4 )
 
-[node name="mesh_cylinder" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -24.5635, 0.88844, 16.187 )
-mesh = SubResource( 5 )
-
-[node name="mesh_cylinder2" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -17.41, 0.88844, -7.65083 )
-mesh = SubResource( 5 )
-
-[node name="mesh_cylinder3" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -19.1818, 0.888439, 18.6368 )
-mesh = SubResource( 5 )
-
-[node name="mesh_sphere" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -16.7275, 0.888441, 27.0992 )
+[node name="mesh_box" type="MeshInstance" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 21.1915, 0.725502, 18.1904 )
 mesh = SubResource( 6 )
+material/0 = null
 
-[node name="mesh_sphere2" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -6.43105, 0.88844, 30.2985 )
+[node name="mesh_box2" type="MeshInstance" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 30.7196, 0.725503, 10.6604 )
 mesh = SubResource( 6 )
+material/0 = null
 
-[node name="mesh_sphere3" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -32.913, 0.888439, 2.56241 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere4" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -30.4891, 0.888441, 9.08543 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere5" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -22.0082, 0.88844, 19.2057 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere6" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -20.4405, 0.88844, 13.943 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere7" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -24.539, 0.888441, 9.1012 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere8" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -28.1336, 0.88844, 12.8357 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere9" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -27.4099, 0.888441, -0.516104 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
-
-[node name="mesh_sphere10" type="MeshInstance" parent="." instance=ExtResource( 3 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -31.4285, 0.888439, 1.15384 )
-mesh = SubResource( 7 )
-material/0 = ExtResource( 4 )
+[node name="mesh_box3" type="MeshInstance" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 4.10749, 0.725503, 18.9445 )
+mesh = SubResource( 6 )
+material/0 = null

@@ -1,8 +1,6 @@
 tool
 extends HBoxContainer
 
-signal saving_requested
-
 var files = []
 var resource_preview
 
@@ -36,7 +34,6 @@ func update_files(paths):
 	files.clear()
 	for p in paths:
 		files.append(p)
-		get_preview(p, self)
 	update_item_list()
 	
 	
@@ -45,10 +42,12 @@ func update_item_list():
 		item_list.add_item(path)
 		var i = item_list.get_item_count()-1
 		item_list.set_item_tooltip(i, path)
-		get_preview(path, self)
-	emit_signal("saving_requested")
 	
-
+	#WAIT UNTIL ENTERING READY STATE ALLOWING resource_preview VALUE TO BE VALID BEFORE REQUESTING THUMBNAIL IMAGE
+	yield(get_tree(), "idle_frame")
+	for path in files:
+		get_preview(path)
+	
 func get_selected_item_list():
 	return item_list.get_item_tooltip(item_list.get_selected_items()[0])
 
@@ -57,21 +56,59 @@ func set_resource_preview(par):
 	resource_preview = par
 
 
-func get_preview(path, sender):
-	resource_preview.queue_resource_preview(path, sender, "_on_resource_preview", null)
+func get_preview(path):
+	resource_preview.queue_resource_preview(path, self, "_on_resource_preview", null)
 		
 		
 func _on_resource_preview(path, texture, user_data):
 	for i in item_list.get_item_count():
 		if item_list.get_item_text(i) == path:
 			item_list.set_item_icon(i, texture)
-			item_list.set_item_tooltip(i, path)
 			item_list.set_item_text(i, "")
-	emit_signal("saving_requested")
-	
 
-func set_owner_recursive(pobj, powner):
-	for o in pobj.get_children():
-		set_owner_recursive(o, powner)
-		o.owner = powner
-	pobj.owner = powner
+func get_data():
+	var data = {}
+	var itemlist_data = []
+	for i in item_list.get_item_count():
+		itemlist_data.append(item_list.get_item_tooltip(i))
+	data["itemlist_data"] = itemlist_data
+	
+	data.chk_grid = $VBoxContainer/HBoxContainer/chk_grid.pressed
+	data.le_gridsize = $VBoxContainer/HBoxContainer/le_gridsize.text
+	data.chk_rot_x = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_x.pressed
+	data.chk_rot_y = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_y.pressed
+	data.chk_rot_z = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_z.pressed
+	data.chk_scale_x = $VBoxContainer/VBoxContainer3/HBoxContainer/chk_scale_x.pressed
+	data.le_scale_x_min = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_min.text
+	data.le_scale_x_max = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_max.text
+
+	data.chk_scale_y = $VBoxContainer/VBoxContainer3/HBoxContainer2/chk_scale_y.pressed
+	data.le_scale_y_min = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_min.text
+	data.le_scale_y_max = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_max.text
+
+	data.chk_scale_z = $VBoxContainer/VBoxContainer3/HBoxContainer3/chk_scale_z.pressed
+	data.le_scale_z_min = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min.text
+	data.le_scale_z_max = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max.text
+	
+	return data
+	
+func set_data(data):
+	$VBoxContainer/HBoxContainer/chk_grid.pressed = data.chk_grid
+	$VBoxContainer/HBoxContainer/le_gridsize.text = data.le_gridsize 
+	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_x.pressed = data.chk_rot_x 
+	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_y.pressed = data.chk_rot_y 
+	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_z.pressed = data.chk_rot_z 
+	$VBoxContainer/VBoxContainer3/HBoxContainer/chk_scale_x.pressed = data.chk_scale_x 
+	$VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_min.text = data.le_scale_x_min 
+	$VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_max.text = data.le_scale_x_max 
+
+	$VBoxContainer/VBoxContainer3/HBoxContainer2/chk_scale_y.pressed = data.chk_scale_y 
+	$VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_min.text = data.le_scale_y_min 
+	$VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_max.text = data.le_scale_y_max 
+
+	$VBoxContainer/VBoxContainer3/HBoxContainer3/chk_scale_z.pressed = data.chk_scale_z 
+	$VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min.text = data.le_scale_z_min 
+	$VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max.text = data.le_scale_z_max 
+	
+	files = data.itemlist_data
+	update_item_list()

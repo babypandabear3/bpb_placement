@@ -8,6 +8,16 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Control",
+"class": "BPBP_Main",
+"language": "GDScript",
+"path": "res://addons/bpb_placement/bpbp_main.gd"
+} ]
+_global_script_class_icons={
+"BPBP_Main": ""
+}
+
 [application]
 
 config/name="BPB_Placement"

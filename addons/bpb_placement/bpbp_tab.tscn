@@ -23,7 +23,7 @@ __meta__ = {
 margin_right = 159.0
 margin_bottom = 24.0
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/HBoxContainer"]
+[node name="chk_grid" type="CheckBox" parent="VBoxContainer/HBoxContainer"]
 margin_right = 55.0
 margin_bottom = 24.0
 text = "Grid"
@@ -35,7 +35,7 @@ margin_right = 85.0
 margin_bottom = 19.0
 text = "Size"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+[node name="le_gridsize" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
 margin_left = 89.0
 margin_right = 147.0
 margin_bottom = 24.0
@@ -57,18 +57,18 @@ margin_top = 18.0
 margin_right = 159.0
 margin_bottom = 42.0
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
+[node name="chk_rot_x" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
 margin_right = 35.0
 margin_bottom = 24.0
 text = "x"
 
-[node name="CheckBox2" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
+[node name="chk_rot_y" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
 margin_left = 39.0
 margin_right = 74.0
 margin_bottom = 24.0
 text = "y"
 
-[node name="CheckBox3" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
+[node name="chk_rot_z" type="CheckBox" parent="VBoxContainer/HBoxContainer2/HBoxContainer"]
 margin_left = 78.0
 margin_right = 113.0
 margin_bottom = 24.0
@@ -89,12 +89,12 @@ margin_top = 18.0
 margin_right = 159.0
 margin_bottom = 42.0
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
+[node name="chk_scale_x" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
 margin_right = 35.0
 margin_bottom = 24.0
 text = "x"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
+[node name="le_scale_x_min" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
 margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
@@ -102,7 +102,7 @@ text = "1"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
+[node name="le_scale_x_max" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
@@ -115,12 +115,12 @@ margin_top = 46.0
 margin_right = 159.0
 margin_bottom = 70.0
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
+[node name="chk_scale_y" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
 margin_right = 35.0
 margin_bottom = 24.0
 text = "y"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
+[node name="le_scale_y_min" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
 margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
@@ -128,7 +128,7 @@ text = "1"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
+[node name="le_scale_y_max" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer2"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
@@ -141,12 +141,12 @@ margin_top = 74.0
 margin_right = 159.0
 margin_bottom = 98.0
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
+[node name="chk_scale_z" type="CheckBox" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
 margin_right = 35.0
 margin_bottom = 24.0
 text = "z"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
+[node name="le_scale_z_min" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
 margin_left = 39.0
 margin_right = 97.0
 margin_bottom = 24.0
@@ -154,7 +154,7 @@ text = "1"
 caret_blink = true
 caret_blink_speed = 0.5
 
-[node name="LineEdit2" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
+[node name="le_scale_z_max" type="LineEdit" parent="VBoxContainer/VBoxContainer3/HBoxContainer3"]
 margin_left = 101.0
 margin_right = 159.0
 margin_bottom = 24.0
