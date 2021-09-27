@@ -19,9 +19,19 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer"]
 margin_right = 159.0
 margin_bottom = 24.0
+
+[node name="chk_rapid" type="CheckBox" parent="VBoxContainer/HBoxContainer3"]
+margin_right = 135.0
+margin_bottom = 24.0
+text = "Rapid Placement"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 28.0
+margin_right = 159.0
+margin_bottom = 52.0
 
 [node name="chk_grid" type="CheckBox" parent="VBoxContainer/HBoxContainer"]
 margin_right = 55.0
@@ -39,13 +49,14 @@ text = "Size"
 margin_left = 89.0
 margin_right = 147.0
 margin_bottom = 24.0
+text = "1"
 caret_blink = true
 caret_blink_speed = 0.5
 
 [node name="HBoxContainer2" type="VBoxContainer" parent="VBoxContainer"]
-margin_top = 28.0
+margin_top = 56.0
 margin_right = 159.0
-margin_bottom = 70.0
+margin_bottom = 98.0
 
 [node name="Label" type="Label" parent="VBoxContainer/HBoxContainer2"]
 margin_right = 159.0
@@ -74,10 +85,20 @@ margin_right = 113.0
 margin_bottom = 24.0
 text = "z"
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="VBoxContainer"]
-margin_top = 74.0
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer"]
+margin_top = 102.0
 margin_right = 159.0
-margin_bottom = 172.0
+margin_bottom = 126.0
+
+[node name="chk_y_normal" type="CheckBox" parent="VBoxContainer/HBoxContainer4"]
+margin_right = 120.0
+margin_bottom = 24.0
+text = "Y align Normal"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="VBoxContainer"]
+margin_top = 130.0
+margin_right = 159.0
+margin_bottom = 228.0
 
 [node name="Label" type="Label" parent="VBoxContainer/VBoxContainer3"]
 margin_right = 159.0
@@ -163,9 +184,9 @@ caret_blink = true
 caret_blink_speed = 0.5
 
 [node name="btn_add" type="Button" parent="VBoxContainer"]
-margin_top = 176.0
+margin_top = 232.0
 margin_right = 159.0
-margin_bottom = 196.0
+margin_bottom = 252.0
 text = "Add"
 
 [node name="ItemList" type="ItemList" parent="."]

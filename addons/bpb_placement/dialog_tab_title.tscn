@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/bpb_placement/dialog_tab_title.gd" type="Script" id=1]
+
+[node name="TabTitleDialog" type="WindowDialog"]
+margin_right = 200.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 240, 48 )
+popup_exclusive = true
+window_title = "Tab Title"
+script = ExtResource( 1 )
+
+[node name="le_input" type="LineEdit" parent="."]
+margin_top = 14.0
+margin_right = 240.0
+margin_bottom = 38.0
+rect_min_size = Vector2( 240, 0 )
+size_flags_horizontal = 3
+caret_blink = true
+caret_blink_speed = 0.5
+__meta__ = {
+"_edit_use_anchors_": false
+}

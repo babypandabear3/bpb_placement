@@ -51,9 +51,22 @@ text = "Add Tab"
 [node name="TabContainer" type="TabContainer" parent="Panel/VBoxContainer"]
 margin_top = 44.0
 margin_right = 1024.0
-margin_bottom = 200.0
+margin_bottom = 332.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="PopupMenu" type="PopupMenu" parent="."]
+margin_right = 20.0
+margin_bottom = 20.0
+items = [ "Rename Tab", null, 0, false, false, 0, 0, null, "", false, "Delete Tab", null, 0, false, false, 1, 0, null, "", false ]
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+margin_right = 200.0
+margin_bottom = 70.0
+popup_exclusive = true
+dialog_text = "Confirm Tab Deletion?
+*can't be undone"
+
 [connection signal="button_up" from="Panel/VBoxContainer/HBoxContainer/CheckButton" to="." method="_on_CheckButton_button_up"]
 [connection signal="button_up" from="Panel/VBoxContainer/HBoxContainer/btn_add" to="." method="_on_btn_add_button_up"]
+[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_ConfirmationDialog_confirmed"]
