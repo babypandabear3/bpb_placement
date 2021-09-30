@@ -1,10 +1,32 @@
 tool
 extends HBoxContainer
+signal ghost_made
 
 var files = []
 var resource_preview
 
 onready var item_list : ItemList = $ItemList
+
+onready var node_chk_rapid = $VBoxContainer/HBoxContainer3/chk_rapid
+onready var node_chk_grid = $VBoxContainer/HBoxContainer/chk_grid
+onready var node_opt_grid = $VBoxContainer/HBoxContainer/opt_grid
+onready var node_le_gridsize = $VBoxContainer/HBoxContainer/le_gridsize
+onready var node_chk_rot_x = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_x
+onready var node_chk_rot_y = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_y
+onready var node_chk_rot_z = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_z
+onready var node_chk_y_normal = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_y_normal
+
+onready var node_chk_scale_x = $VBoxContainer/VBoxContainer3/HBoxContainer/chk_scale_x
+onready var node_le_scale_x_min = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_min
+onready var node_le_scale_x_max = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_max
+
+onready var node_chk_scale_y = $VBoxContainer/VBoxContainer3/HBoxContainer2/chk_scale_y
+onready var node_le_scale_y_min = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_min
+onready var node_le_scale_y_max = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_max
+
+onready var node_chk_scale_z = $VBoxContainer/VBoxContainer3/HBoxContainer3/chk_scale_z
+onready var node_le_scale_z_min = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min
+onready var node_le_scale_z_max = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max
 
 func _ready():
 	item_list.max_columns = int(item_list.rect_size.x / 64)
@@ -62,7 +84,6 @@ func set_resource_preview(par):
 func get_preview(path):
 	resource_preview.queue_resource_preview(path, self, "_on_resource_preview", null)
 		
-		
 func _on_resource_preview(path, texture, user_data):
 	for i in item_list.get_item_count():
 		if item_list.get_item_text(i) == path:
@@ -76,49 +97,57 @@ func get_data():
 		itemlist_data.append(item_list.get_item_tooltip(i))
 	data["itemlist_data"] = itemlist_data
 	
-	data.chk_rapid = $VBoxContainer/HBoxContainer3/chk_rapid.pressed
-	data.chk_grid = $VBoxContainer/HBoxContainer/chk_grid.pressed
-	data.le_gridsize = $VBoxContainer/HBoxContainer/le_gridsize.text
-	data.chk_rot_x = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_x.pressed
-	data.chk_rot_y = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_y.pressed
-	data.chk_rot_z = $VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_z.pressed
+	data.chk_rapid = node_chk_rapid.pressed
+	data.chk_grid = node_chk_grid.pressed
+	data.opt_grid = node_opt_grid.selected
+	data.le_gridsize = node_le_gridsize.text
+	data.chk_rot_x = node_chk_rot_x.pressed
+	data.chk_rot_y = node_chk_rot_y.pressed
+	data.chk_rot_z = node_chk_rot_z.pressed
 	
-	data.y_normal = $VBoxContainer/HBoxContainer4/chk_y_normal.pressed
+	data.y_normal = node_chk_y_normal.pressed
 	
-	data.chk_scale_x = $VBoxContainer/VBoxContainer3/HBoxContainer/chk_scale_x.pressed
-	data.le_scale_x_min = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_min.text
-	data.le_scale_x_max = $VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_max.text
+	data.chk_scale_x = node_chk_scale_x.pressed
+	data.le_scale_x_min = node_le_scale_x_min.text
+	data.le_scale_x_max = node_le_scale_x_max.text
+	
+	data.chk_scale_y = node_chk_scale_y.pressed
+	data.le_scale_y_min = node_le_scale_y_min.text
+	data.le_scale_y_max = node_le_scale_y_max.text
+	
+	data.chk_scale_z = node_chk_scale_z.pressed
+	data.le_scale_z_min = node_le_scale_z_min.text
+	data.le_scale_z_max = node_le_scale_z_max.text
 
-	data.chk_scale_y = $VBoxContainer/VBoxContainer3/HBoxContainer2/chk_scale_y.pressed
-	data.le_scale_y_min = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_min.text
-	data.le_scale_y_max = $VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_max.text
-
-	data.chk_scale_z = $VBoxContainer/VBoxContainer3/HBoxContainer3/chk_scale_z.pressed
-	data.le_scale_z_min = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min.text
-	data.le_scale_z_max = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max.text
-	
 	return data
 	
 func set_data(data):
-	$VBoxContainer/HBoxContainer3/chk_rapid.pressed = data.chk_rapid
-	$VBoxContainer/HBoxContainer/chk_grid.pressed = data.chk_grid
-	$VBoxContainer/HBoxContainer/le_gridsize.text = data.le_gridsize 
-	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_x.pressed = data.chk_rot_x 
-	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_y.pressed = data.chk_rot_y 
-	$VBoxContainer/HBoxContainer2/HBoxContainer/chk_rot_z.pressed = data.chk_rot_z 
-	$VBoxContainer/HBoxContainer4/chk_y_normal.pressed = data.y_normal
+	node_chk_rapid.pressed = data.chk_rapid
+	node_chk_grid.pressed = data.chk_grid
+	node_opt_grid.selected = data.opt_grid 
+	node_le_gridsize.text = data.le_gridsize 
+	node_chk_rot_x.pressed = data.chk_rot_x 
+	node_chk_rot_y.pressed = data.chk_rot_y 
+	node_chk_rot_z.pressed = data.chk_rot_z 
 	
-	$VBoxContainer/VBoxContainer3/HBoxContainer/chk_scale_x.pressed = data.chk_scale_x 
-	$VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_min.text = data.le_scale_x_min 
-	$VBoxContainer/VBoxContainer3/HBoxContainer/le_scale_x_max.text = data.le_scale_x_max 
-
-	$VBoxContainer/VBoxContainer3/HBoxContainer2/chk_scale_y.pressed = data.chk_scale_y 
-	$VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_min.text = data.le_scale_y_min 
-	$VBoxContainer/VBoxContainer3/HBoxContainer2/le_scale_y_max.text = data.le_scale_y_max 
-
-	$VBoxContainer/VBoxContainer3/HBoxContainer3/chk_scale_z.pressed = data.chk_scale_z 
-	$VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min.text = data.le_scale_z_min 
-	$VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max.text = data.le_scale_z_max 
+	node_chk_y_normal.pressed = data.y_normal 
+	
+	node_chk_scale_x.pressed = data.chk_scale_x 
+	node_le_scale_x_min.text = data.le_scale_x_min 
+	node_le_scale_x_max.text = data.le_scale_x_max 
+	
+	node_chk_scale_y.pressed = data.chk_scale_y 
+	node_le_scale_y_min.text = data.le_scale_y_min 
+	node_le_scale_y_max.text = data.le_scale_y_max 
+	
+	node_chk_scale_z.pressed = data.chk_scale_z 
+	node_le_scale_z_min.text = data.le_scale_z_min 
+	node_le_scale_z_max.text = data.le_scale_z_max 
 	
 	files = data.itemlist_data
 	update_item_list()
+
+func _on_ItemList_item_selected(index):
+	emit_signal("ghost_made")
+
+

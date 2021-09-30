@@ -1,5 +1,8 @@
 tool
 class_name BPBP_Main
+signal ghost_made
+signal ghost_removed
+
 extends Control
 
 const DATAPATH = "res://addons/bpb_placement/data.sav"
@@ -15,11 +18,14 @@ var current_tab_idx = -1
 
 var tab_selected_timer = 0
 
+
 onready var tab : TabContainer = $Panel/VBoxContainer/TabContainer
-onready var button_paint = $Panel/VBoxContainer/HBoxContainer/CheckButton
+onready var button_paint = $Panel/VBoxContainer/HBoxContainer/btn_paint
 onready var dialog_tab_title : WindowDialog
 onready var context_menu : PopupMenu = $PopupMenu
 onready var dialog_confirm_deletion = $ConfirmationDialog
+onready var dialog_warning := $AcceptDialog
+onready var le_grid_level := $Panel/VBoxContainer/HBoxContainer/le_grid_level
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -31,6 +37,7 @@ func _ready():
 		saved_data = file.get_var()
 		#WAIT UNTIL ENTERING READY STATE BEFORE REMAKING TAB PAGES
 		yield(get_tree(), "idle_frame")
+		restore_panel_data(saved_data)
 		remake_tab_pages(saved_data)
 		file.close()
 		
@@ -39,6 +46,7 @@ func _ready():
 	add_child(dialog_tab_title)
 	
 	init_context_menu()
+	button_paint.connect("toggled", self, "toggle_paint_button")
 	
 func init_context_menu():
 	context_menu.connect("index_pressed", self, "_on_context_menu_index_pressed")
@@ -64,7 +72,8 @@ func _on_btn_add_button_up():
 	button_paint.grab_focus()
 	var page = TAB_PAGE.instance()
 	tab.add_child(page)
-	page.set_resource_preview(resource_preview)
+	page.set_resource_preview(resource_preview) # SETTING UP THUMBNAIL MAKER
+	page.connect("ghost_made", plugin_node, "make_ghost") # SETTING UP GHOST NODE MAKER
 
 	if dialog_tab_title:
 		dialog_tab_title.set_tab_idx(tab.get_tab_count()-1)
@@ -82,15 +91,17 @@ func update_tab_title():
 func set_plugin_node(par):
 	plugin_node = par
 	resource_preview = plugin_node.resource_preview
-
-func _on_CheckButton_button_up():
-	pass # Replace with function body.
+	connect("ghost_made", plugin_node, "make_ghost")
+	connect("ghost_removed", plugin_node, "make_ghost")
 
 func is_painting():
 	return button_paint.pressed
 	
 func get_selected_obj():
-	return tab.get_current_tab_control().get_selected_item_list()
+	var ret = tab.get_current_tab_control().get_selected_item_list()
+	if ret == null:
+		dialog_warning.popup_centered()
+	return ret
 
 func save_data():
 	data = {}
@@ -100,31 +111,79 @@ func save_data():
 		tmp["tabdata"] = tab.get_tab_control(i).get_data()
 		data[i] = tmp
 	
+	var data_to_save = {}
+	data_to_save.panel_data = _get_panel_data()
+	data_to_save.tab_data = data
+	
 	var file = File.new()
 	file.open(DATAPATH, File.WRITE)
-	file.store_var(data, true)
+	file.store_var(data_to_save, true)
 	file.close()
+	
+func _get_panel_data():
+	var panel_data = {}
+	panel_data.grid_level = _float_or_zero($Panel/VBoxContainer/HBoxContainer/le_grid_level.text)
+	panel_data.rotation_snap = _float_or_zero($Panel/VBoxContainer/HBoxContainer/le_rotation_snap.text)
+	panel_data.z_up = $Panel/VBoxContainer/HBoxContainer/chk_z_up.pressed
+	return panel_data
+	
+func _float_or_zero(par):
+	if par.rstrip(" ") == "":
+		par = "0"
+	return float(par)
 	
 func get_current_tab_data():
 	var tmp = {}
+	
 	tmp["title"] = tab.get_tab_title(tab.current_tab)
 	tmp["tabdata"] = tab.get_tab_control(tab.current_tab).get_data()
+	tmp["paneldata"] = _get_panel_data()
 	return tmp
 
 func _exit_tree():
 	save_data()
 
+func restore_panel_data(saved_data):
+	var panel_data = saved_data.panel_data
+	$Panel/VBoxContainer/HBoxContainer/le_grid_level.text = str(panel_data.grid_level)
+	$Panel/VBoxContainer/HBoxContainer/le_rotation_snap.text = str(panel_data.rotation_snap)
+	$Panel/VBoxContainer/HBoxContainer/chk_z_up.pressed = panel_data.z_up
+
 func remake_tab_pages(saved_data):
-	for i in saved_data.keys().size():
+	var tab_data = saved_data.tab_data
+	for i in tab_data.keys().size():
 		_on_btn_add_button_up()
-		tab.set_tab_title(i, saved_data[i]["title"])
+		tab.set_tab_title(i, tab_data[i]["title"])
 		tab.get_tab_control(i).set_resource_preview(resource_preview)
-		tab.get_tab_control(i).set_data(saved_data[i]["tabdata"])
-
-
+		tab.get_tab_control(i).set_data(tab_data[i]["tabdata"])
 
 func _on_ConfirmationDialog_confirmed():
 	var current_tab = tab.get_current_tab_control()
 	tab.remove_child(current_tab)
 	current_tab.queue_free()
+
+
+func toggle_paint_button(button_pressed):
+	emit_paint_signal()
 	
+func toggle_paint():
+	button_paint.pressed = not button_paint.pressed
+	emit_paint_signal()
+	
+func emit_paint_signal():
+	if button_paint.pressed:
+		emit_signal("ghost_made")
+	else:
+		emit_signal("ghost_removed")
+
+func grid_level_raised():
+	le_grid_level.text = str(_float_or_zero(le_grid_level.text) + 1)
+	
+func grid_level_lowered():
+	le_grid_level.text = str(_float_or_zero(le_grid_level.text) - 1)
+
+
+func _on_btn_paint_toggled(button_pressed):
+	if not button_pressed:
+		plugin_node.stop_painting()
+	pass # Replace with function body.
