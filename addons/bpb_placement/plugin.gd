@@ -57,11 +57,12 @@ var ghost_init_scale = Vector3()
 var ghost_init_basis
 var ghost_init_rotation
 
-var circles = [false, false, false]
+
 var first_draw = false
 var circle_center = Vector2()
 
 var timer = Timer.new()
+var timer_click = Timer.new()
 var allow_rapid_paint = true
 
 onready var transform_menu = get_editor_interface().get_editor_viewport().get_child(1).get_child(0) #.get_child(18)
@@ -80,12 +81,18 @@ func _enter_tree():
 	timer.one_shot = true
 	timer.connect("timeout", self, "_on_timer_timeout")
 	
+	add_child(timer_click)
+	timer_click.one_shot = true
+	timer_click.connect("timeout", self, "_on_timer_click_timeout")
+	
 func _on_timer_timeout():
 	allow_rapid_paint = true
 	
 func _exit_tree():
 	hide_bottom_panel()
 	remove_control_from_bottom_panel(panel)
+	if ghost:
+		ghost.queue_free()
 	panel.queue_free()
 
 func _ready():
@@ -143,7 +150,6 @@ func _start_edit_mode_scale(event):
 	get_viewport().warp_mouse(mouse_edit_pos)
 	ghost_init_scale = ghost.scale
 	
-	circles = [false, true, true]
 	first_draw = true
 	
 func _start_edit_mode_rotate(event):
@@ -154,7 +160,6 @@ func _start_edit_mode_rotate(event):
 	ghost_init_basis = ghost.global_transform.basis
 	ghost_init_rotation = ghost.rotation
 	
-	circles = [false, true, true]
 	first_draw = true
 
 # FUNCTION handles IS NEEDED TO ALLOW OVERLAY DRAWING
@@ -172,16 +177,12 @@ func forward_spatial_gui_input(camera, event):
 			ghost.show()
 		else:
 			ghost.hide()
-			circles = [false, false, false]
-			update_overlays()
 			
 	if event is InputEventMouseMotion:
-		
 		# GHOST LOGIC
 		if panel.is_painting() and ghost != null:
 			match edit_mode:
 				EDIT_MODES.NORMAL:
-					circles = [false, false, false]
 					var panel_data = panel.get_current_tab_data()
 					var tab_data = panel_data["tabdata"]
 					var ray_result = null
@@ -407,7 +408,6 @@ func forward_spatial_gui_input(camera, event):
 						get_viewport().warp_mouse(mouse_last_pos)
 						allow_rapid_paint = false
 						timer.start(0.1)
-						circles = [false, false, false]
 						update_overlays()
 						return true
 					EDIT_MODES.ROTATE:
@@ -415,7 +415,6 @@ func forward_spatial_gui_input(camera, event):
 						get_viewport().warp_mouse(mouse_last_pos)
 						allow_rapid_paint = false
 						timer.start(0.1)
-						circles = [false, false, false]
 						update_overlays()
 						return true
 						
@@ -426,14 +425,12 @@ func forward_spatial_gui_input(camera, event):
 						ghost.scale = ghost_init_scale
 						edit_mode = EDIT_MODES.NORMAL
 						get_viewport().warp_mouse(mouse_last_pos)
-						circles = [false, false, false]
 						update_overlays()
 						return true
 					EDIT_MODES.ROTATE:
 						ghost.global_transform.basis = ghost_init_basis
 						edit_mode = EDIT_MODES.NORMAL
 						get_viewport().warp_mouse(mouse_last_pos)
-						circles = [false, false, false]
 						update_overlays()
 						return true
 
@@ -481,6 +478,9 @@ func init_paint_job(ray_result, tab_data, ghost_data):
 	undo_redo.add_do_reference(obj)
 	undo_redo.commit_action()
 	last_placement = ray_result.position
+	
+	timer_click.start(0.1)
+	first_draw = true
 	
 func do_placement(obj, ray_result, new_rot, new_scale):
 	get_tree().get_edited_scene_root().add_child(obj)
@@ -535,31 +535,35 @@ func rotate_ghost(axis, val):
 	ghost.global_transform.basis = Basis(new_x, new_y, new_z)
 	
 
+func _on_timer_click_timeout():
+	update_overlays()
+	pass
+	
 func forward_spatial_draw_over_viewport(overlay):
-	if circles[2]:
-		var color = Color(0.0, 0.0, 0.0, 0.2)
+	if edit_mode == EDIT_MODES.SCALE or edit_mode == EDIT_MODES.ROTATE:
+		var color0 = Color(0.0, 0.0, 0.0, 0.1)
 		if first_draw:
 			circle_center = overlay.get_local_mouse_position()
-			var mouse_pos = get_viewport().get_mouse_position()
+			var mouse_pos = overlay.get_global_mouse_position()
 			var diff = mouse_pos - circle_center
 			circle_center = mouse_last_pos - diff
 			first_draw = false
-		overlay.draw_circle(circle_center, 100, color)
-	if circles[1]:
-		var color = Color(1.0, 1.0, 1.0, 0.2)
+		overlay.draw_circle(circle_center, 100, color0)
+		
+		var color1 = Color(0.0, 1.0, 1.0, 0.1)
+		if edit_mode == EDIT_MODES.SCALE:
+			color1 = Color(0.0, 0.0, 1.0, 0.1)
+		
 		var radius = circle_center.distance_to(overlay.get_local_mouse_position())
-		overlay.draw_circle(circle_center, radius, color)
-	if circles[0]:
-		var color = Color(0.0, 0.0, 0.0, 0.2)
+		overlay.draw_circle(circle_center, radius, color1)
+	if timer_click.time_left > 0:
 		if first_draw:
 			circle_center = overlay.get_local_mouse_position()
-			var mouse_pos = get_viewport().get_mouse_position()
-			var diff = mouse_pos - circle_center
-			circle_center = mouse_last_pos - diff
 			first_draw = false
-		overlay.draw_circle(circle_center, 64, color)
+		var color0 = Color(0.0, 1.0, 0.0, 0.8)
+		overlay.draw_circle(circle_center, 10, color0)
 	
 func stop_painting():
-	circles = [false, false, false]
-	update_overlays()
 	ghost.hide()
+	update_overlays()
+	

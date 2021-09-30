@@ -24,10 +24,6 @@ config/name="BPB_Placement"
 run/main_scene="res://main.tscn"
 config/icon="res://icon.png"
 
-[editor_plugins]
-
-enabled=PoolStringArray( "res://addons/bpb_placement/plugin.cfg" )
-
 [physics]
 
 common/enable_pause_aware_picking=true
