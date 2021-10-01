@@ -13,12 +13,18 @@ To make it easier to place objects onto level. I decided to use tabbed interface
 Usage
 -----
 Once the addon is active, you get BPB Placement panel on bottom panel (next to Output, Debugger, Audio, Animation...)
+
 Click Add Tab button and set name for newly made tab
+
 In tab, click Add button and choose scene file you want to add
+
 Scene will be available on list on right, displayed as thumbnail
+
 To start placing objects, choose one from list and click Paint button on main Panel. 
+
 Point mouse to where you want to instance the scene. A temporary pointer mesh will be shown at mouse position. 
-To instance object, Left Click 
+
+To instance object, Left Click. Or for Rapid Placement, hold Left Click and drag mouse 
 
 
 Panel Options
