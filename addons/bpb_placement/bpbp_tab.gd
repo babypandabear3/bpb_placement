@@ -28,9 +28,12 @@ onready var node_chk_scale_z = $VBoxContainer/VBoxContainer3/HBoxContainer3/chk_
 onready var node_le_scale_z_min = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_min
 onready var node_le_scale_z_max = $VBoxContainer/VBoxContainer3/HBoxContainer3/le_scale_z_max
 
+onready var context_menu = $PopupMenu
+
 func _ready():
 	item_list.max_columns = int(item_list.rect_size.x / 64)
-
+	context_menu.connect("index_pressed", self, "_on_context_menu_index_pressed")
+	
 func _on_btn_add_button_up():
 	var dialog = EditorFileDialog.new()
 	dialog.access = EditorFileDialog.ACCESS_RESOURCES
@@ -60,10 +63,14 @@ func update_files(paths):
 	
 	
 func update_item_list():
+	var arr_tmp = []
+	for i in item_list.get_item_count():
+		arr_tmp.append(item_list.get_item_tooltip(i))
 	for path in files:
-		item_list.add_item(path)
-		var i = item_list.get_item_count()-1
-		item_list.set_item_tooltip(i, path)
+		if not arr_tmp.has(path):
+			item_list.add_item(path)
+			var i = item_list.get_item_count()-1
+			item_list.set_item_tooltip(i, path)
 	
 	#WAIT UNTIL ENTERING READY STATE ALLOWING resource_preview VALUE TO BE VALID BEFORE REQUESTING THUMBNAIL IMAGE
 	yield(get_tree(), "idle_frame")
@@ -150,4 +157,13 @@ func set_data(data):
 func _on_ItemList_item_selected(index):
 	emit_signal("ghost_made")
 
+func _on_ItemList_item_rmb_selected(index, at_position):
+	var pos = get_viewport().get_mouse_position()
+	context_menu.rect_position = pos
+	context_menu.popup()
 
+func _on_context_menu_index_pressed(index):
+	if index == 0: #remove
+		item_list.remove_item(item_list.get_selected_items()[0])
+	elif index == 1: #clear
+		item_list.clear()

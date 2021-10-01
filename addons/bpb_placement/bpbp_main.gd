@@ -18,7 +18,6 @@ var current_tab_idx = -1
 
 var tab_selected_timer = 0
 
-
 onready var tab : TabContainer = $Panel/VBoxContainer/TabContainer
 onready var button_paint = $Panel/VBoxContainer/HBoxContainer/btn_paint
 onready var dialog_tab_title : WindowDialog
@@ -47,6 +46,7 @@ func _ready():
 	
 	init_context_menu()
 	button_paint.connect("toggled", self, "toggle_paint_button")
+	
 	
 func init_context_menu():
 	context_menu.connect("index_pressed", self, "_on_context_menu_index_pressed")

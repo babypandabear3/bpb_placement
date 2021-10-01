@@ -135,12 +135,19 @@ func _intersect_with_plane(camera, screen_point, snap_val, grid_level, grid_type
 		return res
 	return null
 	
-func _start_edit_mode_scale(event):
+func _start_edit_mode_scale(event, fresh=true):
 	edit_mode = EDIT_MODES.SCALE
 	scale_mode = SCALE_MODES.XYZ
 	
+	var tmp_center = Vector2()
+	if not fresh:
+		tmp_center = mouse_last_pos
 	mouse_last_pos = get_viewport().get_mouse_position()
 	viewport_center = get_viewport().size / 2
+	
+	if not fresh:
+		mouse_last_pos = tmp_center
+		
 	var mouse_edit_pos = mouse_last_pos
 	if mouse_last_pos.x < get_viewport().size.x / 2:
 		mouse_edit_pos.x += 100
@@ -152,14 +159,19 @@ func _start_edit_mode_scale(event):
 	
 	first_draw = true
 	
-func _start_edit_mode_rotate(event):
+func _start_edit_mode_rotate(event, fresh=true):
 	edit_mode = EDIT_MODES.ROTATE
 	rotate_mode = ROTATE_MODES.Y
 	
+	var tmp_center = Vector2()
+	if not fresh:
+		tmp_center = mouse_last_pos
 	mouse_last_pos = get_viewport().get_mouse_position()
+	if not fresh:
+		mouse_last_pos = tmp_center
 	ghost_init_basis = ghost.global_transform.basis
 	ghost_init_rotation = ghost.rotation
-	
+	get_viewport().warp_mouse(mouse_last_pos)
 	first_draw = true
 
 # FUNCTION handles IS NEEDED TO ALLOW OVERLAY DRAWING
@@ -313,19 +325,41 @@ func forward_spatial_gui_input(camera, event):
 								_start_edit_mode_rotate(event)
 								
 						if event.scancode == KEY_X:
-							rotate_ghost("X", rotation_snap)
+							if event.shift:
+								rotate_ghost("X", -rotation_snap)
+							else:
+								rotate_ghost("X", rotation_snap)
 						if event.scancode == KEY_Y:
 							if not z_up:
-								rotate_ghost("Y", rotation_snap)
+								if event.shift:
+									rotate_ghost("Y", -rotation_snap)
+								else:
+									rotate_ghost("Y", rotation_snap)
 							else:
-								rotate_ghost("Z", rotation_snap)
+								if event.shift:
+									rotate_ghost("Z", -rotation_snap)
+								else:
+									rotate_ghost("Z", rotation_snap)
 						if event.scancode == KEY_Z:
 							if not z_up:
-								rotate_ghost("Z", rotation_snap)
+								if event.shift:
+									rotate_ghost("Z", -rotation_snap)
+								else:
+									rotate_ghost("Z", rotation_snap)
 							else:
-								rotate_ghost("Y", rotation_snap)
+								if event.shift:
+									rotate_ghost("Y", -rotation_snap)
+								else:
+									rotate_ghost("Y", rotation_snap)
 							
 					EDIT_MODES.SCALE:
+						if event.scancode == KEY_R:
+							if event.alt:
+								ghost.rotation = Vector3()
+								ghost_init_rotation = Vector3()
+							else:
+								_start_edit_mode_rotate(event, false)
+								
 						if event.scancode == KEY_X:
 							if event.shift:
 								scale_mode = SCALE_MODES.YZ
@@ -362,6 +396,13 @@ func forward_spatial_gui_input(camera, event):
 							else:
 								scale_mode = SCALE_MODES.XYZ
 					EDIT_MODES.ROTATE:
+						if event.scancode == KEY_S:
+							if event.alt:
+								ghost.scale = Vector3(1,1,1)
+								ghost_init_scale = Vector3(1,1,1)
+							else:
+								_start_edit_mode_scale(event, false)
+								
 						if event.scancode == KEY_X:
 							rotate_mode = ROTATE_MODES.X
 						elif event.scancode == KEY_Y:

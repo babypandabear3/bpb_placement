@@ -210,8 +210,15 @@ margin_bottom = 600.0
 rect_min_size = Vector2( 0, 200 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
+allow_rmb_select = true
 max_columns = 12
 same_column_width = true
 
+[node name="PopupMenu" type="PopupMenu" parent="."]
+margin_right = 20.0
+margin_bottom = 20.0
+items = [ "Remove", null, 0, false, false, 0, 0, null, "", false, "Clear", null, 0, false, false, 1, 0, null, "", false ]
+
 [connection signal="button_up" from="VBoxContainer/btn_add" to="." method="_on_btn_add_button_up"]
+[connection signal="item_rmb_selected" from="ItemList" to="." method="_on_ItemList_item_rmb_selected"]
 [connection signal="item_selected" from="ItemList" to="." method="_on_ItemList_item_selected"]
