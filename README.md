@@ -67,9 +67,8 @@ S : Enter Scale mode
 
 Acknowledgements
 ---------------
-Several people in the Godot community have helped me out with this.
+Several people in the Godot community have helped me out with this. They answer a lot of questions that helps tremendously in writing features for this plugins
 * z-one 
 * HungryProton
 * pycbouh
 * samsfacee
-They answer a lot of questions that helps tremendously in writing features for this plugins
