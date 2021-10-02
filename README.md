@@ -36,6 +36,7 @@ On panel, following parameters can be set
 
 Following shortcut are available for main panel
 - Ctrl Space : Toggle Paint Mode
+
 And these shortcuts are available when in Paint Mode
 - . (Period) : raise grid level
 - , (Comma : lower grid level
