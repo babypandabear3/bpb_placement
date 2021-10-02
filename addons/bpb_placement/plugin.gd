@@ -5,6 +5,7 @@ signal ghost_made
 signal ghost_removed
 
 const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
+var Interop = preload("res://addons/bpb_placement/interop.gd")
 
 enum EDIT_MODES {
 	NORMAL,
@@ -37,6 +38,7 @@ var last_placement = Vector3(10000, 10000, 10000)
 var allow_paint = true
 
 var ghost = null
+var ghost_grid = null
 var grid_plane
 var grid_placement = []
 var plane_xz = Plane(Plane.PLANE_XZ)
@@ -69,6 +71,7 @@ onready var transform_menu = get_editor_interface().get_editor_viewport().get_ch
 #Popupmenu has a set_item_disabled. So get the popupmenu child of the menu button and use that on the first item.
 
 func _enter_tree():
+	Interop.register(self, "BPB_Placement")
 	resource_preview = get_editor_interface().get_resource_previewer()
 	panel = PANEL_DEFAULT.instance()
 	
@@ -85,10 +88,8 @@ func _enter_tree():
 	timer_click.one_shot = true
 	timer_click.connect("timeout", self, "_on_timer_click_timeout")
 	
-func _on_timer_timeout():
-	allow_rapid_paint = true
-	
 func _exit_tree():
+	Interop.deregister(self) 
 	hide_bottom_panel()
 	remove_control_from_bottom_panel(panel)
 	if ghost:
@@ -97,6 +98,9 @@ func _exit_tree():
 
 func _ready():
 	panel.set_plugin_node(self)
+	
+func _on_timer_timeout():
+	allow_rapid_paint = true
 	
 func show_panel():
 	add_control_to_container(EditorPlugin.CONTAINER_SPATIAL_EDITOR_BOTTOM , panel)
@@ -604,7 +608,11 @@ func forward_spatial_draw_over_viewport(overlay):
 		var color0 = Color(0.0, 1.0, 0.0, 0.8)
 		overlay.draw_circle(circle_center, 10, color0)
 	
+func start_painting():
+	Interop.grab_full_input(self)
+	
 func stop_painting():
+	Interop.release_full_input(self)
 	ghost.hide()
 	update_overlays()
 	

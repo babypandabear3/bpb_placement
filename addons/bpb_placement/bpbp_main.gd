@@ -184,6 +184,7 @@ func grid_level_lowered():
 
 
 func _on_btn_paint_toggled(button_pressed):
-	if not button_pressed:
+	if button_pressed:
+		plugin_node.start_painting()
+	else:
 		plugin_node.stop_painting()
-	pass # Replace with function body.
