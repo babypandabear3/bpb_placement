@@ -82,8 +82,6 @@ func _on_btn_add_button_up():
 		dialog_tab_title.do_focus()
 
 func update_tab_title():
-	var undo_redo = plugin_node.get_undo_redo()
-	undo_redo.create_action("update tab title")
 	var data = dialog_tab_title.get_data()
 	tab.set_tab_title(data.tab_idx, data.text)
 	tab.current_tab = data.tab_idx

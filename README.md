@@ -34,6 +34,12 @@ On panel, following parameters can be set
 - *Rotation Snap* - In Degree. Used for rotating pointer mesh
 - *Z for up* - Swaps the z and y shortcut keys for people who want the same shortcuts Blender uses
 
+Following shortcut are available for main panel
+- Ctrl Space : Toggle Paint Mode
+And these shortcuts are available when in Paint Mode
+- . (Period) : raise grid level
+- , (Comma : lower grid level
+
 On tab,
 - *Rapid Placement* - Allowing rapid placement while holding and dragging Left Mouse button
 - *Grid* - Use Grid-like position for placement

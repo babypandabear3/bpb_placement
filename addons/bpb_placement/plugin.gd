@@ -494,7 +494,6 @@ func forward_spatial_gui_input(camera, event):
 	return false
 
 func init_paint_job(ray_result, tab_data, ghost_data):
-	Interop.start_work(self, "bpb_placement")
 	var path = panel.get_selected_obj()
 	if path == null:
 		return
@@ -518,7 +517,7 @@ func init_paint_job(ray_result, tab_data, ghost_data):
 	var rot_val = {}
 	rot_val.use_basis = use_basis
 	rot_val.basis = new_basis
-	rot_val.rot = new_rot
+	rot_val.rotation = new_rot
 	
 	#SCALE
 	var new_scale = ghost.scale
@@ -539,8 +538,6 @@ func init_paint_job(ray_result, tab_data, ghost_data):
 	
 	timer_click.start(0.1)
 	first_draw = true
-	
-	Interop.end_work(self, "bpb_placement")
 	
 func do_placement(obj, ray_result, new_rot, new_scale):
 	get_tree().get_edited_scene_root().add_child(obj)
