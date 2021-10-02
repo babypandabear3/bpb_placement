@@ -29,6 +29,8 @@ enum ROTATE_MODES {
 	Z,
 }
 
+var interop_ignore_input := false
+
 var panel 
 
 var button_active : CheckButton
@@ -99,6 +101,13 @@ func _exit_tree():
 func _ready():
 	panel.set_plugin_node(self)
 	
+func _interop_notification(caller_plugin_id: String, code: int, id: String, args):
+	match code:
+		Interop.NOTIFY_CODE_REQUEST_IGNORE_INPUT:
+			interop_ignore_input = true
+		Interop.NOTIFY_CODE_ALLOW_INPUT:
+			interop_ignore_input = false
+			
 func _on_timer_timeout():
 	allow_rapid_paint = true
 	
@@ -186,6 +195,9 @@ func handles(object):
 	return object == null
 
 func forward_spatial_gui_input(camera, event):
+	if interop_ignore_input:
+		return false
+		
 	update_overlays()
 	# SHOW / HIDE GHOST
 	if ghost != null:
@@ -482,6 +494,7 @@ func forward_spatial_gui_input(camera, event):
 	return false
 
 func init_paint_job(ray_result, tab_data, ghost_data):
+	Interop.start_work(self, "bpb_placement")
 	var path = panel.get_selected_obj()
 	if path == null:
 		return
@@ -526,6 +539,8 @@ func init_paint_job(ray_result, tab_data, ghost_data):
 	
 	timer_click.start(0.1)
 	first_draw = true
+	
+	Interop.end_work(self, "bpb_placement")
 	
 func do_placement(obj, ray_result, new_rot, new_scale):
 	get_tree().get_edited_scene_root().add_child(obj)
