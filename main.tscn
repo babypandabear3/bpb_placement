@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://trial/mesh_box.tscn" type="PackedScene" id=1]
 
@@ -25,6 +25,36 @@ albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
 [sub_resource type="CubeMesh" id=7]
 material = SubResource( 6 )
 
+[sub_resource type="SpatialMaterial" id=8]
+albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
+
+[sub_resource type="CubeMesh" id=9]
+material = SubResource( 8 )
+
+[sub_resource type="SpatialMaterial" id=10]
+albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
+
+[sub_resource type="CubeMesh" id=11]
+material = SubResource( 10 )
+
+[sub_resource type="SpatialMaterial" id=12]
+albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
+
+[sub_resource type="CubeMesh" id=13]
+material = SubResource( 12 )
+
+[sub_resource type="SpatialMaterial" id=14]
+albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
+
+[sub_resource type="CubeMesh" id=15]
+material = SubResource( 14 )
+
+[sub_resource type="SpatialMaterial" id=16]
+albedo_color = Color( 0.188235, 0.713726, 0.866667, 1 )
+
+[sub_resource type="CubeMesh" id=17]
+material = SubResource( 16 )
+
 [node name="main" type="Spatial"]
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
@@ -47,7 +77,27 @@ material/0 = null
 [node name="CollisionShape" type="CollisionShape" parent="MeshInstance2/StaticBody"]
 shape = SubResource( 5 )
 
-[node name="mesh_box" type="MeshInstance" parent="." instance=ExtResource( 1 )]
-transform = Transform( 7.34097, 0, 1.87857, 0, 2.53002, 0, -8.13752, 0, 1.69469, -5.1488, 0.518821, -11.1444 )
+[node name="mesh_box" parent="." instance=ExtResource( 1 )]
+transform = Transform( 6.31568, 0, -2.06767, 0, 2.53002, 0, 8.95663, 0, 1.45799, -8.0162, 8.42783, -16.0401 )
 mesh = SubResource( 7 )
+
+[node name="mesh_box2" parent="." instance=ExtResource( 1 )]
+transform = Transform( 0.49777, 0, 1.72587, 0, 1.79622, 0, -1.72587, 0, 0.49777, 6.80933, 0.51882, -13.432 )
+mesh = SubResource( 9 )
+
+[node name="mesh_box3" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1.9653, 0, -0.208212, 0, 1.9763, 0, 0.208212, 0, 1.9653, 13.3133, 0.0286932, -5.98248 )
+mesh = SubResource( 11 )
+
+[node name="mesh_box4" parent="." instance=ExtResource( 1 )]
+transform = Transform( 2.98459e+06, 0, 0, 0, 2.98459e+06, 0, 0, 0, 2.98459e+06, 20.7437, 0.518818, -6.81762 )
+mesh = SubResource( 13 )
+
+[node name="mesh_box5" parent="." instance=ExtResource( 1 )]
+transform = Transform( -0.165478, 0.954423, 0.248383, -0.455111, -0.297337, 0.839324, 0.874923, 0.0258473, 0.483571, -12.3295, 0.518821, -11.7106 )
+mesh = SubResource( 15 )
+
+[node name="mesh_box6" type="MeshInstance" parent="." instance=ExtResource( 1 )]
+transform = Transform( 1.30912e+06, 529055, -1.25387e+06, -1.25982e+06, 1.12916e+06, -838902, 514729, 1.4181e+06, 1.13576e+06, -27.2946, 0.518824, -10.0801 )
+mesh = SubResource( 17 )
 material/0 = null

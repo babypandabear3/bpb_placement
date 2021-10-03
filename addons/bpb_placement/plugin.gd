@@ -8,28 +8,26 @@ const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
 var Interop = preload("res://addons/bpb_placement/interop.gd")
 
 enum EDIT_MODES {
+	NONE,
 	NORMAL,
 	ROTATE,
-	SCALE
+	SCALE,
+	GSR
 }
 
-enum SCALE_MODES {
+
+enum AXIS_ENUM {
 	XYZ,
 	X,
 	Y,
 	Z,
 	XY,
 	XZ,
-	YZ
-}
-
-enum ROTATE_MODES {
-	X,
-	Y,
-	Z,
+	YZ,
 }
 
 var interop_ignore_input := false
+var gsr_plugin 
 
 var panel 
 
@@ -48,8 +46,8 @@ var plane_xy = Plane(Plane.PLANE_XY)
 var plane_yz = Plane(Plane.PLANE_YZ)
 
 var edit_mode = EDIT_MODES.NORMAL
-var scale_mode = SCALE_MODES.XYZ
-var rotate_mode = ROTATE_MODES.Y
+var axis = AXIS_ENUM.XYZ
+var axis_local = true
 
 var use_ghost_last_pos = false
 var ghost_last_pos = Vector3()
@@ -89,6 +87,7 @@ func _enter_tree():
 	add_child(timer_click)
 	timer_click.one_shot = true
 	timer_click.connect("timeout", self, "_on_timer_click_timeout")
+	edit_mode = EDIT_MODES.NONE
 	
 func _exit_tree():
 	Interop.deregister(self) 
@@ -148,9 +147,29 @@ func _intersect_with_plane(camera, screen_point, snap_val, grid_level, grid_type
 		return res
 	return null
 	
-func _start_edit_mode_scale(event, fresh=true):
+func call_me_back(what, accept, t):
+	print(accept)
+	if t:
+		ghost.transform = t[0]
+	else:
+		ghost.global_transform.basis = ghost_init_basis
+		
+	edit_mode = EDIT_MODES.NORMAL
+	get_viewport().warp_mouse(mouse_last_pos)
+	allow_rapid_paint = false
+	timer.start(0.1)
+	
+func _start_edit_mode_scale(event, camera, fresh=true):
+	mouse_last_pos = get_viewport().get_mouse_position()
+	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
+	if gsr_plugin:
+		edit_mode = EDIT_MODES.GSR
+		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "call_me_back")
+		return
+		
 	edit_mode = EDIT_MODES.SCALE
-	scale_mode = SCALE_MODES.XYZ
+	axis = AXIS_ENUM.XYZ
+	axis_local = true
 	
 	var tmp_center = Vector2()
 	if not fresh:
@@ -172,9 +191,19 @@ func _start_edit_mode_scale(event, fresh=true):
 	
 	first_draw = true
 	
-func _start_edit_mode_rotate(event, fresh=true):
+	
+	
+func _start_edit_mode_rotate(event, camera, fresh=true):
+	mouse_last_pos = get_viewport().get_mouse_position()
+	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
+	if gsr_plugin:
+		edit_mode = EDIT_MODES.GSR
+		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "call_me_back")
+		return
+		
 	edit_mode = EDIT_MODES.ROTATE
-	rotate_mode = ROTATE_MODES.Y
+	axis = AXIS_ENUM.Y
+	axis_local = false
 	
 	var tmp_center = Vector2()
 	if not fresh:
@@ -198,6 +227,9 @@ func forward_spatial_gui_input(camera, event):
 	if interop_ignore_input:
 		return false
 		
+	if edit_mode == EDIT_MODES.GSR:
+		return false
+		
 	update_overlays()
 	# SHOW / HIDE GHOST
 	if ghost != null:
@@ -208,7 +240,7 @@ func forward_spatial_gui_input(camera, event):
 			
 	if event is InputEventMouseMotion:
 		# GHOST LOGIC
-		if panel.is_painting() and ghost != null:
+		if ghost != null:
 			match edit_mode:
 				EDIT_MODES.NORMAL:
 					var panel_data = panel.get_current_tab_data()
@@ -237,45 +269,14 @@ func forward_spatial_gui_input(camera, event):
 				EDIT_MODES.SCALE:
 					var cur_mouse = get_viewport().get_mouse_position()
 					var dist = mouse_last_pos.distance_to(cur_mouse) / 100
-					var new_scale = ghost_init_scale
-					match scale_mode :
-						SCALE_MODES.XYZ:
-							new_scale *= dist
-						SCALE_MODES.X:
-							new_scale.x = ghost_init_scale.x * dist
-						SCALE_MODES.Y:
-							new_scale.y = ghost_init_scale.y * dist
-						SCALE_MODES.Z:
-							new_scale.z = ghost_init_scale.z * dist
-						SCALE_MODES.XY:
-							new_scale.x = ghost_init_scale.x * dist
-							new_scale.y = ghost_init_scale.y * dist
-						SCALE_MODES.XZ:
-							new_scale.x = ghost_init_scale.x * dist
-							new_scale.z = ghost_init_scale.z * dist
-						SCALE_MODES.YZ:
-							new_scale.y = ghost_init_scale.y * dist
-							new_scale.z = ghost_init_scale.z * dist
-					ghost.scale = new_scale
+					scale_ghost(dist)
 				EDIT_MODES.ROTATE:
 					var cur_mouse = get_viewport().get_mouse_position()
-					var dist = (cur_mouse.x - mouse_last_pos.x) / 100 #viewport_center.distance_to(cur_mouse) / 100
-					var new_x = ghost_init_basis.x
-					var new_y = ghost_init_basis.y
-					var new_z = ghost_init_basis.z
-					if rotate_mode == ROTATE_MODES.X:
-						new_y = (ghost_init_basis.y).rotated(ghost_init_basis.x.normalized(), dist)
-						new_z = (ghost_init_basis.z).rotated(ghost_init_basis.x.normalized(), dist)
-					if rotate_mode == ROTATE_MODES.Y:
-						new_x = (ghost_init_basis.x).rotated(ghost_init_basis.y.normalized(), dist)
-						new_z = (ghost_init_basis.z).rotated(ghost_init_basis.y.normalized(), dist)
-					if rotate_mode == ROTATE_MODES.Z:
-						new_x = (ghost_init_basis.x).rotated(ghost_init_basis.z.normalized(), dist)
-						new_y = (ghost_init_basis.y).rotated(ghost_init_basis.z.normalized(), dist)
-					ghost.global_transform.basis = Basis(new_x, new_y, new_z)
-				
+					var dist = (cur_mouse.x - mouse_last_pos.x)
+					rotate_ghost(axis, axis_local, dist, true)
+					
 		# RAPID PLACEMENT LOGIC
-		if event.button_mask == 1 and panel.is_painting() and edit_mode == EDIT_MODES.NORMAL:
+		if event.button_mask == 1 and edit_mode == EDIT_MODES.NORMAL:
 			var panel_data = panel.get_current_tab_data()
 			var tab_data = panel_data["tabdata"]
 			if tab_data.chk_rapid:
@@ -311,132 +312,159 @@ func forward_spatial_gui_input(camera, event):
 			if event.scancode == KEY_SPACE and event.control :
 				panel.toggle_paint()
 				
-			if panel.is_painting():
-				var panel_data = panel.get_current_tab_data()
-				var tab_data = panel_data["tabdata"]
-				var rotation_snap = float(panel_data["paneldata"].rotation_snap)
-				var z_up = panel_data["paneldata"].z_up
+			
+			var panel_data = panel.get_current_tab_data()
+			var tab_data = panel_data["tabdata"]
+			var rotation_snap = float(panel_data["paneldata"].rotation_snap)
+			var z_up = panel_data["paneldata"].z_up
 				
-				match edit_mode :
-					EDIT_MODES.NORMAL:
+			match edit_mode :
+				EDIT_MODES.NORMAL:
 						
-						if event.scancode == KEY_PERIOD:
-							panel.grid_level_raised()
-							
-						if event.scancode == KEY_COMMA:
-							panel.grid_level_lowered()
-							
-						if event.scancode == KEY_S:
-							if event.alt:
-								ghost.scale = Vector3(1,1,1)
-								ghost_init_scale = Vector3(1,1,1)
-							else:
-								_start_edit_mode_scale(event)
+					if event.scancode == KEY_PERIOD:
+						panel.grid_level_raised()
 						
-						if event.scancode == KEY_R:
-							if event.alt:
-								ghost.rotation = Vector3()
-								ghost_init_rotation = Vector3()
-							else:
-								_start_edit_mode_rotate(event)
-								
-						if event.scancode == KEY_X:
-							if event.shift:
-								rotate_ghost("X", -rotation_snap)
-							else:
-								rotate_ghost("X", rotation_snap)
-						if event.scancode == KEY_Y:
-							if not z_up:
-								if event.shift:
-									rotate_ghost("Y", -rotation_snap)
-								else:
-									rotate_ghost("Y", rotation_snap)
-							else:
-								if event.shift:
-									rotate_ghost("Z", -rotation_snap)
-								else:
-									rotate_ghost("Z", rotation_snap)
-						if event.scancode == KEY_Z:
-							if not z_up:
-								if event.shift:
-									rotate_ghost("Z", -rotation_snap)
-								else:
-									rotate_ghost("Z", rotation_snap)
-							else:
-								if event.shift:
-									rotate_ghost("Y", -rotation_snap)
-								else:
-									rotate_ghost("Y", rotation_snap)
+					if event.scancode == KEY_COMMA:
+						panel.grid_level_lowered()
+						
+					if event.scancode == KEY_S:
+						if event.alt:
+							ghost.scale = Vector3(1,1,1)
+							ghost_init_scale = Vector3(1,1,1)
+						else:
+							_start_edit_mode_scale(event, camera)
+						
+					if event.scancode == KEY_R:
+						if event.alt:
+							ghost.rotation = Vector3()
+							ghost_init_rotation = Vector3()
+						else:
+							_start_edit_mode_rotate(event, camera)
 							
-					EDIT_MODES.SCALE:
-						if event.scancode == KEY_R:
-							if event.alt:
-								ghost.rotation = Vector3()
-								ghost_init_rotation = Vector3()
-							else:
-								_start_edit_mode_rotate(event, false)
-								
-						if event.scancode == KEY_X:
+					if event.scancode == KEY_X:
+						axis_local = false
+						axis = AXIS_ENUM.X
+						if event.shift:
+							rotate_ghost(axis, axis_local, -rotation_snap)
+						else:
+							rotate_ghost(axis, axis_local, rotation_snap)
+					if event.scancode == KEY_Y:
+						axis_local = false
+						if not z_up:
+							axis = AXIS_ENUM.Y
+						else:
+							axis = AXIS_ENUM.Z
+							
+						if event.shift:
+							rotate_ghost(axis, axis_local, -rotation_snap)
+						else:
+							rotate_ghost(axis, axis_local, rotation_snap)
+						
+					if event.scancode == KEY_Z:
+						axis_local = false
+						if not z_up:
+							axis = AXIS_ENUM.Z
+						else:
+							axis = AXIS_ENUM.Y
+							
+						if event.shift:
+							rotate_ghost(axis, axis_local, -rotation_snap)
+						else:
+							rotate_ghost(axis, axis_local, rotation_snap)
+						
+							
+				EDIT_MODES.SCALE:
+					if event.scancode == KEY_R:
+						if event.alt:
+							ghost.rotation = Vector3()
+							ghost_init_rotation = Vector3()
+						else:
+							_start_edit_mode_rotate(event, false)
+							
+					if event.scancode == KEY_X:
+						if event.shift:
+							axis = AXIS_ENUM.YZ
+						else:
+							axis = AXIS_ENUM.X
+					elif event.scancode == KEY_Y:
+						if not z_up:
 							if event.shift:
-								scale_mode = SCALE_MODES.YZ
+								axis = AXIS_ENUM.XZ
 							else:
-								scale_mode = SCALE_MODES.X
-						elif event.scancode == KEY_Y:
-							if not z_up:
-								if event.shift:
-									scale_mode = SCALE_MODES.XZ
-								else:
-									scale_mode = SCALE_MODES.Y
+								axis = AXIS_ENUM.Y
+						else:
+							if event.shift:
+								axis = AXIS_ENUM.XY
 							else:
-								if event.shift:
-									scale_mode = SCALE_MODES.XY
-								else:
-									scale_mode = SCALE_MODES.Z
-						elif event.scancode == KEY_Z:
-							if not z_up:
-								if event.shift:
-									scale_mode = SCALE_MODES.XY
-								else:
-									scale_mode = SCALE_MODES.Z
+								axis = AXIS_ENUM.Z
+					elif event.scancode == KEY_Z:
+						if not z_up:
+							if event.shift:
+								axis = AXIS_ENUM.XY
 							else:
-								if event.shift:
-									scale_mode = SCALE_MODES.XZ
-								else:
-									scale_mode = SCALE_MODES.Y
-						elif event.scancode == KEY_S:
-							if event.alt:
-								ghost.scale = Vector3(1,1,1)
-								ghost_init_scale = Vector3(1,1,1)
-							elif event.shift:
-								ghost.scale = ghost_init_scale
+								axis = AXIS_ENUM.Z
+						else:
+							if event.shift:
+								axis = AXIS_ENUM.XZ
 							else:
-								scale_mode = SCALE_MODES.XYZ
-					EDIT_MODES.ROTATE:
-						if event.scancode == KEY_S:
-							if event.alt:
-								ghost.scale = Vector3(1,1,1)
-								ghost_init_scale = Vector3(1,1,1)
+								axis = AXIS_ENUM.Y
+					elif event.scancode == KEY_S:
+						if event.alt:
+							ghost.scale = Vector3(1,1,1)
+							ghost_init_scale = Vector3(1,1,1)
+						elif event.shift:
+							ghost.scale = ghost_init_scale
+						else:
+							axis = AXIS_ENUM.XYZ
+				EDIT_MODES.ROTATE:
+					if event.scancode == KEY_S:
+						if event.alt:
+							ghost.scale = Vector3(1,1,1)
+							ghost_init_scale = Vector3(1,1,1)
+						else:
+							_start_edit_mode_scale(event, false)
+							
+					if event.scancode == KEY_X:
+						if axis != AXIS_ENUM.X:
+							axis_local = false
+							axis = AXIS_ENUM.X
+						else:
+							axis_local = not axis_local
+						
+					elif event.scancode == KEY_Y:
+						if not z_up:
+							if axis != AXIS_ENUM.Y:
+								axis_local = false
+								axis = AXIS_ENUM.Y
 							else:
-								_start_edit_mode_scale(event, false)
-								
-						if event.scancode == KEY_X:
-							rotate_mode = ROTATE_MODES.X
-						elif event.scancode == KEY_Y:
-							if not z_up:
-								rotate_mode = ROTATE_MODES.Y
+								axis_local = not axis_local
+						else:
+							if axis != AXIS_ENUM.Z:
+								axis_local = false
+								axis = AXIS_ENUM.Z
 							else:
-								rotate_mode = ROTATE_MODES.Z
-						elif event.scancode == KEY_Z:
-							if not z_up:
-								rotate_mode = ROTATE_MODES.Z
+								axis_local = not axis_local
+						
+					elif event.scancode == KEY_Z:
+						if not z_up:
+							if axis != AXIS_ENUM.Z:
+								axis_local = false
+								axis = AXIS_ENUM.Z
 							else:
-								rotate_mode = ROTATE_MODES.Y
-						elif event.scancode == KEY_R:
-							if event.alt:
-								ghost.rotation = Vector3()
-								ghost_init_rotation = Vector3()
-							elif event.shift:
-								ghost.global_transform.basis = ghost_init_basis
+								axis_local = not axis_local
+						else:
+							if axis != AXIS_ENUM.Y:
+								axis_local = false
+								axis = AXIS_ENUM.Y
+							else:
+								axis_local = not axis_local
+						
+					elif event.scancode == KEY_R:
+						if event.alt:
+							ghost.rotation = Vector3()
+							ghost_init_rotation = Vector3()
+						elif event.shift:
+							ghost.global_transform.basis = ghost_init_basis
 	
 	## MOUSE BUTTON, LEFT TO PLACE / CONFIRM SCALE AND ROTATE, RIGHT TO CANCEL
 	if event is InputEventMouseButton :
@@ -576,19 +604,68 @@ func remove_ghost():
 		ghost.hide()
 		ghost.queue_free()
 
-func rotate_ghost(axis, val):
+func scale_ghost(dist):
+	var new_scale = ghost_init_scale
+	match axis :
+		AXIS_ENUM.XYZ:
+			new_scale *= dist
+		AXIS_ENUM.X:
+			new_scale.x = ghost_init_scale.x * dist
+		AXIS_ENUM.Y:
+			new_scale.y = ghost_init_scale.y * dist
+		AXIS_ENUM.Z:
+			new_scale.z = ghost_init_scale.z * dist
+		AXIS_ENUM.XY:
+			new_scale.x = ghost_init_scale.x * dist
+			new_scale.y = ghost_init_scale.y * dist
+		AXIS_ENUM.XZ:
+			new_scale.x = ghost_init_scale.x * dist
+			new_scale.z = ghost_init_scale.z * dist
+		AXIS_ENUM.YZ:
+			new_scale.y = ghost_init_scale.y * dist
+			new_scale.z = ghost_init_scale.z * dist
+	ghost.scale = new_scale
+					
+func rotate_ghost(paxis, paxis_local, val, init_basis = false):
 	var degree = deg2rad(val)
 	var ghost_basis = ghost.global_transform.basis
+	if init_basis:
+		ghost_basis = ghost_init_basis
+	
 	var vector_axis = Vector3.UP
-	if axis == "X":
-		vector_axis = Vector3.RIGHT
-	if axis == "Y":
-		vector_axis = Vector3.UP
-	if axis == "Z":
-		vector_axis = Vector3.BACK
-	var new_x = (ghost_basis.x).rotated(vector_axis, degree)
-	var new_y = (ghost_basis.y).rotated(vector_axis, degree)
-	var new_z = (ghost_basis.z).rotated(vector_axis, degree)
+	if paxis == AXIS_ENUM.X:
+		if paxis_local:
+			vector_axis = ghost.global_transform.basis.x
+		else:
+			vector_axis = Vector3.RIGHT
+	if paxis == AXIS_ENUM.Y:
+		if paxis_local:
+			vector_axis = ghost.global_transform.basis.y
+		else:
+			vector_axis = Vector3.UP
+	if paxis == AXIS_ENUM.Z:
+		if paxis_local:
+			vector_axis = ghost.global_transform.basis.z
+		else:
+			vector_axis = Vector3.BACK
+	var new_x = ghost_basis.x
+	var new_y = ghost_basis.y
+	var new_z = ghost_basis.z
+	
+	if axis_local:
+		if axis == AXIS_ENUM.X:
+			new_y = (ghost_basis.y).rotated(vector_axis.normalized(), degree)
+			new_z = (ghost_basis.z).rotated(vector_axis.normalized(), degree)
+		if axis == AXIS_ENUM.Y:
+			new_x = (ghost_basis.x).rotated(vector_axis.normalized(), degree)
+			new_z = (ghost_basis.z).rotated(vector_axis.normalized(), degree)
+		if axis == AXIS_ENUM.Z:
+			new_x = (ghost_basis.x).rotated(vector_axis.normalized(), degree)
+			new_y = (ghost_basis.y).rotated(vector_axis.normalized(), degree)
+	else:
+		new_x = (ghost_basis.x).rotated(vector_axis.normalized(), degree)
+		new_y = (ghost_basis.y).rotated(vector_axis.normalized(), degree)
+		new_z = (ghost_basis.z).rotated(vector_axis.normalized(), degree)
 	ghost.global_transform.basis = Basis(new_x, new_y, new_z)
 	
 
@@ -622,9 +699,12 @@ func forward_spatial_draw_over_viewport(overlay):
 	
 func start_painting():
 	Interop.grab_full_input(self)
+	edit_mode = EDIT_MODES.NORMAL
 	
 func stop_painting():
 	Interop.release_full_input(self)
+	edit_mode = EDIT_MODES.NONE
 	ghost.hide()
 	update_overlays()
+	
 	
