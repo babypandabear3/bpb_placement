@@ -110,7 +110,7 @@ func save_data():
 		data[i] = tmp
 	
 	var data_to_save = {}
-	data_to_save.panel_data = _get_panel_data()
+	data_to_save.panel_data = get_panel_data()
 	data_to_save.tab_data = data
 	
 	var file = File.new()
@@ -118,11 +118,12 @@ func save_data():
 	file.store_var(data_to_save, true)
 	file.close()
 	
-func _get_panel_data():
+func get_panel_data():
 	var panel_data = {}
 	panel_data.grid_level = _float_or_zero($Panel/VBoxContainer/HBoxContainer/le_grid_level.text)
 	panel_data.rotation_snap = _float_or_zero($Panel/VBoxContainer/HBoxContainer/le_rotation_snap.text)
 	panel_data.z_up = $Panel/VBoxContainer/HBoxContainer/chk_z_up.pressed
+	panel_data.gsr = $Panel/VBoxContainer/HBoxContainer/chk_gsr.pressed
 	return panel_data
 	
 func _float_or_zero(par):
@@ -132,10 +133,9 @@ func _float_or_zero(par):
 	
 func get_current_tab_data():
 	var tmp = {}
-	
 	tmp["title"] = tab.get_tab_title(tab.current_tab)
 	tmp["tabdata"] = tab.get_tab_control(tab.current_tab).get_data()
-	tmp["paneldata"] = _get_panel_data()
+	tmp["paneldata"] = get_panel_data()
 	return tmp
 
 func _exit_tree():
@@ -146,6 +146,7 @@ func restore_panel_data(saved_data):
 	$Panel/VBoxContainer/HBoxContainer/le_grid_level.text = str(panel_data.grid_level)
 	$Panel/VBoxContainer/HBoxContainer/le_rotation_snap.text = str(panel_data.rotation_snap)
 	$Panel/VBoxContainer/HBoxContainer/chk_z_up.pressed = panel_data.z_up
+	$Panel/VBoxContainer/HBoxContainer/chk_gsr.pressed = panel_data.gsr
 
 func remake_tab_pages(saved_data):
 	var tab_data = saved_data.tab_data

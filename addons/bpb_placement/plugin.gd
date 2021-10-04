@@ -56,6 +56,7 @@ var mouse_last_pos = Vector2()
 var viewport_center = Vector2()
 var ghost_init_scale = Vector3()
 
+var ghost_init_viewport_pos = Vector2()
 var ghost_init_basis
 var ghost_init_rotation
 
@@ -66,6 +67,8 @@ var circle_center = Vector2()
 var timer = Timer.new()
 var timer_click = Timer.new()
 var allow_rapid_paint = true
+
+var camera_last
 
 onready var transform_menu = get_editor_interface().get_editor_viewport().get_child(1).get_child(0) #.get_child(18)
 #Popupmenu has a set_item_disabled. So get the popupmenu child of the menu button and use that on the first item.
@@ -147,7 +150,7 @@ func _intersect_with_plane(camera, screen_point, snap_val, grid_level, grid_type
 		return res
 	return null
 	
-func call_me_back(what, accept, t):
+func gsr_manipulation_result(what, accept, t):
 	print(accept)
 	if t:
 		ghost.transform = t[0]
@@ -160,25 +163,22 @@ func call_me_back(what, accept, t):
 	timer.start(0.1)
 	
 func _start_edit_mode_scale(event, camera, fresh=true):
-	mouse_last_pos = get_viewport().get_mouse_position()
+	var panel_gsr = panel.get_panel_data().gsr
 	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
-	if gsr_plugin:
+	if gsr_plugin and panel_gsr:
 		edit_mode = EDIT_MODES.GSR
-		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "call_me_back")
+		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "gsr_manipulation_result")
 		return
 		
 	edit_mode = EDIT_MODES.SCALE
 	axis = AXIS_ENUM.XYZ
 	axis_local = true
 	
-	var tmp_center = Vector2()
-	if not fresh:
-		tmp_center = mouse_last_pos
-	mouse_last_pos = get_viewport().get_mouse_position()
 	viewport_center = get_viewport().size / 2
-	
+	mouse_last_pos = get_viewport().get_mouse_position()
 	if not fresh:
-		mouse_last_pos = tmp_center
+		mouse_last_pos = ghost_init_viewport_pos
+	
 		
 	var mouse_edit_pos = mouse_last_pos
 	if mouse_last_pos.x < get_viewport().size.x / 2:
@@ -187,33 +187,35 @@ func _start_edit_mode_scale(event, camera, fresh=true):
 		mouse_edit_pos.x -= 100
 	
 	get_viewport().warp_mouse(mouse_edit_pos)
+	ghost_init_viewport_pos = mouse_last_pos
 	ghost_init_scale = ghost.scale
-	
+	ghost_init_basis = ghost.global_transform.basis
 	first_draw = true
 	
 	
 	
 func _start_edit_mode_rotate(event, camera, fresh=true):
-	mouse_last_pos = get_viewport().get_mouse_position()
+	var panel_gsr = panel.get_panel_data().gsr
 	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
-	if gsr_plugin:
+	if gsr_plugin and panel_gsr:
 		edit_mode = EDIT_MODES.GSR
-		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "call_me_back")
+		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "gsr_manipulation_result")
 		return
 		
 	edit_mode = EDIT_MODES.ROTATE
 	axis = AXIS_ENUM.Y
 	axis_local = false
 	
-	var tmp_center = Vector2()
-	if not fresh:
-		tmp_center = mouse_last_pos
 	mouse_last_pos = get_viewport().get_mouse_position()
 	if not fresh:
-		mouse_last_pos = tmp_center
+		mouse_last_pos = ghost_init_viewport_pos
+		
+	ghost_init_viewport_pos = mouse_last_pos
 	ghost_init_basis = ghost.global_transform.basis
 	ghost_init_rotation = ghost.rotation
-	get_viewport().warp_mouse(mouse_last_pos)
+	var mouse_first_rotate_pos = mouse_last_pos
+	mouse_first_rotate_pos.x += 50
+	get_viewport().warp_mouse(mouse_first_rotate_pos)
 	first_draw = true
 
 # FUNCTION handles IS NEEDED TO ALLOW OVERLAY DRAWING
@@ -224,6 +226,7 @@ func handles(object):
 	return object == null
 
 func forward_spatial_gui_input(camera, event):
+	camera_last = camera
 	if interop_ignore_input:
 		return false
 		
@@ -272,8 +275,8 @@ func forward_spatial_gui_input(camera, event):
 					scale_ghost(dist)
 				EDIT_MODES.ROTATE:
 					var cur_mouse = get_viewport().get_mouse_position()
-					var dist = (cur_mouse.x - mouse_last_pos.x)
-					rotate_ghost(axis, axis_local, dist, true)
+					var angle = Vector2.RIGHT.angle_to(cur_mouse-ghost_init_viewport_pos)
+					rotate_ghost(axis, axis_local, angle, true)
 					
 		# RAPID PLACEMENT LOGIC
 		if event.button_mask == 1 and edit_mode == EDIT_MODES.NORMAL:
@@ -379,35 +382,77 @@ func forward_spatial_gui_input(camera, event):
 							ghost.rotation = Vector3()
 							ghost_init_rotation = Vector3()
 						else:
-							_start_edit_mode_rotate(event, false)
+							_start_edit_mode_rotate(event, camera, false)
 							
 					if event.scancode == KEY_X:
 						if event.shift:
-							axis = AXIS_ENUM.YZ
+							if not axis == AXIS_ENUM.YZ:
+								axis = AXIS_ENUM.YZ
+								axis_local = false
+							else:
+								axis_local = not axis_local
 						else:
-							axis = AXIS_ENUM.X
+							if not axis == AXIS_ENUM.X:
+								axis = AXIS_ENUM.X
+								axis_local = false
+							else:
+								axis_local = not axis_local
 					elif event.scancode == KEY_Y:
 						if not z_up:
 							if event.shift:
-								axis = AXIS_ENUM.XZ
+								if not axis == AXIS_ENUM.XZ:
+									axis = AXIS_ENUM.XZ
+									axis_local = false
+								else:
+									axis_local = not axis_local
 							else:
-								axis = AXIS_ENUM.Y
+								if not axis == AXIS_ENUM.Y:
+									axis = AXIS_ENUM.Y
+									axis_local = false
+								else:
+									axis_local = not axis_local
+								
 						else:
 							if event.shift:
-								axis = AXIS_ENUM.XY
+								if not axis == AXIS_ENUM.XY:
+									axis = AXIS_ENUM.XY
+									axis_local = false
+								else:
+									axis_local = not axis_local
 							else:
-								axis = AXIS_ENUM.Z
+								if not axis == AXIS_ENUM.Z:
+									axis = AXIS_ENUM.Z
+									axis_local = false
+								else:
+									axis_local = not axis_local
 					elif event.scancode == KEY_Z:
 						if not z_up:
 							if event.shift:
 								axis = AXIS_ENUM.XY
+								if not axis == AXIS_ENUM.XY:
+									axis = AXIS_ENUM.XY
+									axis_local = false
+								else:
+									axis_local = not axis_local
 							else:
-								axis = AXIS_ENUM.Z
+								if not axis == AXIS_ENUM.Z:
+									axis = AXIS_ENUM.Z
+									axis_local = false
+								else:
+									axis_local = not axis_local
 						else:
 							if event.shift:
-								axis = AXIS_ENUM.XZ
+								if not axis == AXIS_ENUM.XZ:
+									axis = AXIS_ENUM.XZ
+									axis_local = false
+								else:
+									axis_local = not axis_local
 							else:
-								axis = AXIS_ENUM.Y
+								if not axis == AXIS_ENUM.Y:
+									axis = AXIS_ENUM.Y
+									axis_local = false
+								else:
+									axis_local = not axis_local
 					elif event.scancode == KEY_S:
 						if event.alt:
 							ghost.scale = Vector3(1,1,1)
@@ -422,7 +467,7 @@ func forward_spatial_gui_input(camera, event):
 							ghost.scale = Vector3(1,1,1)
 							ghost_init_scale = Vector3(1,1,1)
 						else:
-							_start_edit_mode_scale(event, false)
+							_start_edit_mode_scale(event, camera, false)
 							
 					if event.scancode == KEY_X:
 						if axis != AXIS_ENUM.X:
@@ -576,8 +621,14 @@ func do_placement(obj, ray_result, new_rot, new_scale):
 		obj.global_transform.basis = new_rot.basis
 	else:
 		obj.rotation = new_rot.rotation
+		
 	#SCALE
-	obj.scale = new_scale
+	if not new_scale.is_equal_approx(ghost.scale):
+		var old_basis = obj.global_transform.basis
+		old_basis.x = old_basis.x * new_scale.x
+		old_basis.y = old_basis.y * new_scale.y
+		old_basis.z = old_basis.z * new_scale.z
+		obj.global_transform.basis = old_basis
 	#ADD TO SCENE TREE
 	obj.set_owner(get_tree().get_edited_scene_root())
 	
@@ -606,28 +657,48 @@ func remove_ghost():
 
 func scale_ghost(dist):
 	var new_scale = ghost_init_scale
-	match axis :
-		AXIS_ENUM.XYZ:
-			new_scale *= dist
-		AXIS_ENUM.X:
-			new_scale.x = ghost_init_scale.x * dist
-		AXIS_ENUM.Y:
-			new_scale.y = ghost_init_scale.y * dist
-		AXIS_ENUM.Z:
-			new_scale.z = ghost_init_scale.z * dist
-		AXIS_ENUM.XY:
-			new_scale.x = ghost_init_scale.x * dist
-			new_scale.y = ghost_init_scale.y * dist
-		AXIS_ENUM.XZ:
-			new_scale.x = ghost_init_scale.x * dist
-			new_scale.z = ghost_init_scale.z * dist
-		AXIS_ENUM.YZ:
-			new_scale.y = ghost_init_scale.y * dist
-			new_scale.z = ghost_init_scale.z * dist
-	ghost.scale = new_scale
-					
-func rotate_ghost(paxis, paxis_local, val, init_basis = false):
-	var degree = deg2rad(val)
+	if axis_local:
+		match axis :
+			AXIS_ENUM.XYZ:
+				new_scale *= dist
+			AXIS_ENUM.X:
+				new_scale.x = ghost_init_scale.x * dist
+			AXIS_ENUM.Y:
+				new_scale.y = ghost_init_scale.y * dist
+			AXIS_ENUM.Z:
+				new_scale.z = ghost_init_scale.z * dist
+			AXIS_ENUM.XY:
+				new_scale.x = ghost_init_scale.x * dist
+				new_scale.y = ghost_init_scale.y * dist
+			AXIS_ENUM.XZ:
+				new_scale.x = ghost_init_scale.x * dist
+				new_scale.z = ghost_init_scale.z * dist
+			AXIS_ENUM.YZ:
+				new_scale.y = ghost_init_scale.y * dist
+				new_scale.z = ghost_init_scale.z * dist
+		ghost.scale = new_scale
+	else:
+		var new_basis_x = ghost_init_basis.x
+		var new_basis_y = ghost_init_basis.y
+		var new_basis_z = ghost_init_basis.z
+		var modi = 0.5
+		if axis == AXIS_ENUM.X or axis == AXIS_ENUM.XY or axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.XZ:
+			new_basis_x.x = new_basis_x.x * dist * modi
+			new_basis_y.x = new_basis_y.x * dist * modi
+			new_basis_z.x = new_basis_z.x * dist * modi
+		if axis == AXIS_ENUM.XY or axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.Y or axis == AXIS_ENUM.YZ:
+			new_basis_x.y = new_basis_x.y * dist * modi
+			new_basis_y.y = new_basis_y.y * dist * modi
+			new_basis_z.y = new_basis_z.y * dist * modi
+		if axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.XZ or axis == AXIS_ENUM.YZ or axis == AXIS_ENUM.Z:
+			new_basis_x.z = new_basis_x.z * dist * modi
+			new_basis_y.z = new_basis_y.z * dist * modi
+			new_basis_z.z = new_basis_z.z * dist * modi
+		ghost.global_transform.basis = Basis(new_basis_x, new_basis_y, new_basis_z)
+		
+		
+func rotate_ghost(paxis, paxis_local, angle, init_basis = false):
+	
 	var ghost_basis = ghost.global_transform.basis
 	if init_basis:
 		ghost_basis = ghost_init_basis
@@ -652,6 +723,10 @@ func rotate_ghost(paxis, paxis_local, val, init_basis = false):
 	var new_y = ghost_basis.y
 	var new_z = ghost_basis.z
 	
+	var dot = vector_axis.normalized().dot((-camera_last.global_transform.basis.z).normalized())
+	var degree = angle
+	if dot < 0:
+		degree *= -1
 	if axis_local:
 		if axis == AXIS_ENUM.X:
 			new_y = (ghost_basis.y).rotated(vector_axis.normalized(), degree)
@@ -689,7 +764,17 @@ func forward_spatial_draw_over_viewport(overlay):
 			color1 = Color(0.0, 0.0, 1.0, 0.1)
 		
 		var radius = circle_center.distance_to(overlay.get_local_mouse_position())
-		overlay.draw_circle(circle_center, radius, color1)
+		#overlay.draw_circle(circle_center, radius, color1)
+		
+		var mouse_pos = overlay.get_local_mouse_position()
+		draw_line_dotted(overlay, mouse_pos, circle_center, 4.0, 4.0, Color.white, 1.0, true)
+		
+		if axis == AXIS_ENUM.X or axis == AXIS_ENUM.XY or axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.XZ:
+			draw_axis(overlay, "X", axis_local)
+		if axis == AXIS_ENUM.XY or axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.Y or axis == AXIS_ENUM.YZ:
+			draw_axis(overlay, "Y", axis_local)
+		if axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.XZ or axis == AXIS_ENUM.YZ or axis == AXIS_ENUM.Z:
+			draw_axis(overlay, "Z", axis_local)
 	if timer_click.time_left > 0:
 		if first_draw:
 			circle_center = overlay.get_local_mouse_position()
@@ -707,4 +792,60 @@ func stop_painting():
 	ghost.hide()
 	update_overlays()
 	
+	
+func draw_line_dotted(control: CanvasItem, from: Vector2, to: Vector2, dot_len: float, space_len: float, color: Color, width: float = 1.0, antialiased: bool = false):
+	var normal := (to - from).normalized()
+	
+	var start := from
+	var end := from + normal * dot_len
+	var length = (to - from).length()
+	
+	while length > (start - from).length():
+		if length < (end - from).length():
+			end = to
+		
+		control.draw_line(start, end, color, width, antialiased)
+		
+		start = end + normal * space_len
+		end = start + normal * dot_len
+
+func draw_axis(control, paxis, plocal):
+	if not camera_last:
+		return
+		
+	var start_3d = ghost.global_transform.origin
+	var end_3d
+	var color
+	var changer = Vector3.RIGHT
+	if paxis == "X":
+		color = Color(1, 0.6, 0.6, 1)
+		changer = Vector3.RIGHT
+		if plocal:
+			changer = ghost.global_transform.basis.x.normalized()
+	if paxis == "Y":
+		color = Color(0.6, 1, 0.6, 1)
+		changer = Vector3.UP
+		if plocal:
+			changer = ghost.global_transform.basis.y.normalized()
+		else:
+			pass
+	if paxis == "Z":
+		color = Color(0.6, 0.6, 1, 1)
+		changer = Vector3.BACK
+		if plocal:
+			changer = ghost.global_transform.basis.z.normalized()
+		
+	var line_width = 1.0
+	var line_length = 10
+	if not plocal:
+		line_length = 20
+		line_width = 2.0
+	end_3d = start_3d + (changer * line_length)
+	var end_3d2 = start_3d - (changer * line_length)
+	
+	var start = camera_last.unproject_position(start_3d)
+	var end = camera_last.unproject_position(end_3d)
+	var end2 = camera_last.unproject_position(end_3d2)
+	control.draw_line(start, end, color, line_width)
+	control.draw_line(start, end2, color, line_width)
 	

@@ -4,7 +4,8 @@
 
 [node name="bpbp_main" type="Control"]
 anchor_right = 1.0
-rect_min_size = Vector2( 200, 200 )
+margin_bottom = 100.0
+rect_min_size = Vector2( 200, 100 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 1 )
@@ -81,13 +82,18 @@ __meta__ = {
 margin_left = 467.0
 margin_right = 544.0
 margin_bottom = 40.0
-pressed = true
 text = "Z for up"
+
+[node name="chk_gsr" type="CheckBox" parent="Panel/VBoxContainer/HBoxContainer"]
+margin_left = 548.0
+margin_right = 675.0
+margin_bottom = 40.0
+text = "GSR Integration"
 
 [node name="TabContainer" type="TabContainer" parent="Panel/VBoxContainer"]
 margin_top = 44.0
 margin_right = 1024.0
-margin_bottom = 304.0
+margin_bottom = 200.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
