@@ -190,6 +190,7 @@ func _start_edit_mode_scale(event, camera, fresh=true):
 	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
 	if gsr_plugin and panel_gsr:
 		edit_mode = EDIT_MODES.GSR
+		yield(get_tree().create_timer(0.1), "timeout")
 		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "gsr_manipulation_result")
 		return
 		
@@ -218,6 +219,7 @@ func _start_edit_mode_rotate(event, camera, fresh=true):
 	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
 	if gsr_plugin and panel_gsr:
 		edit_mode = EDIT_MODES.GSR
+		yield(get_tree().create_timer(0.1), "timeout")
 		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "gsr_manipulation_result")
 		return
 		
@@ -422,6 +424,7 @@ func forward_spatial_gui_input(camera, event):
 									axis_local = false
 								else:
 									axis_local = not axis_local
+							update_overlays()
 					elif event.scancode == KEY_Y:
 						if event.control:
 							pass
@@ -455,6 +458,7 @@ func forward_spatial_gui_input(camera, event):
 										axis_local = false
 									else:
 										axis_local = not axis_local
+							update_overlays()
 					elif event.scancode == KEY_Z:
 						if event.control:
 							pass
@@ -488,6 +492,7 @@ func forward_spatial_gui_input(camera, event):
 										axis_local = false
 									else:
 										axis_local = not axis_local
+							update_overlays()
 					elif event.scancode == KEY_S:
 						if event.alt:
 							ghost.scale = Vector3(1,1,1)
@@ -515,6 +520,7 @@ func forward_spatial_gui_input(camera, event):
 								axis = AXIS_ENUM.X
 							else:
 								axis_local = not axis_local
+						update_overlays()
 					elif event.scancode == KEY_Y:
 						if event.control:
 							pass
@@ -533,6 +539,7 @@ func forward_spatial_gui_input(camera, event):
 									axis = AXIS_ENUM.Z
 								else:
 									axis_local = not axis_local
+						update_overlays()
 					elif event.scancode == KEY_Z:
 						if event.control:
 							pass
@@ -551,7 +558,7 @@ func forward_spatial_gui_input(camera, event):
 									axis = AXIS_ENUM.Y
 								else:
 									axis_local = not axis_local
-						
+						update_overlays()
 					elif event.scancode == KEY_R:
 						if event.alt:
 							ghost.rotation = Vector3()
@@ -827,6 +834,8 @@ func forward_spatial_draw_over_viewport(overlay):
 			draw_axis(overlay, "Y", axis_local)
 		if axis == AXIS_ENUM.XYZ or axis == AXIS_ENUM.XZ or axis == AXIS_ENUM.YZ or axis == AXIS_ENUM.Z:
 			draw_axis(overlay, "Z", axis_local)
+			
+	# DRAW CIRCLE WHEN PLACING OBJECT
 	if timer_click.time_left > 0:
 		if first_draw:
 			circle_center = overlay.get_local_mouse_position()
@@ -875,19 +884,19 @@ func draw_axis(control, paxis, plocal):
 		color = Color(1, 0.6, 0.6, 1)
 		changer = Vector3.RIGHT
 		if plocal:
-			changer = ghost.global_transform.basis.x.normalized()
+			changer = ghost_init_basis.x.normalized()
 	if paxis == "Y":
 		color = Color(0.6, 1, 0.6, 1)
 		changer = Vector3.UP
 		if plocal:
-			changer = ghost.global_transform.basis.y.normalized()
+			changer = ghost_init_basis.y.normalized()
 		else:
 			pass
 	if paxis == "Z":
 		color = Color(0.6, 0.6, 1, 1)
 		changer = Vector3.BACK
 		if plocal:
-			changer = ghost.global_transform.basis.z.normalized()
+			changer = ghost_init_basis.z.normalized()
 		
 	var line_width = 1.0
 	var line_length = 10
