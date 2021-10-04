@@ -165,14 +165,6 @@ func gsr_manipulation_result(what, accept, t):
 	timer.start(0.1)
 	
 func _start_edit_mode_scale(event, camera, fresh=true):
-	var panel_gsr = panel.get_panel_data().gsr
-	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
-	if gsr_plugin and panel_gsr:
-		edit_mode = EDIT_MODES.GSR
-		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "gsr_manipulation_result")
-		return
-		
-	edit_mode = EDIT_MODES.SCALE
 	axis = AXIS_ENUM.XYZ
 	axis_local = true
 	
@@ -180,7 +172,6 @@ func _start_edit_mode_scale(event, camera, fresh=true):
 	mouse_last_pos = get_viewport().get_mouse_position()
 	if not fresh:
 		mouse_last_pos = ghost_init_viewport_pos
-	
 		
 	var mouse_edit_pos = mouse_last_pos
 	if mouse_last_pos.x < get_viewport().size.x / 2:
@@ -194,17 +185,19 @@ func _start_edit_mode_scale(event, camera, fresh=true):
 	ghost_init_basis = ghost.global_transform.basis
 	first_draw = true
 	
-	
-	
-func _start_edit_mode_rotate(event, camera, fresh=true):
+	# GSR Integration
 	var panel_gsr = panel.get_panel_data().gsr
 	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
 	if gsr_plugin and panel_gsr:
 		edit_mode = EDIT_MODES.GSR
-		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "gsr_manipulation_result")
+		gsr_plugin.external_request_manipulation(camera, "sr", [ghost], self, "gsr_manipulation_result")
 		return
 		
-	edit_mode = EDIT_MODES.ROTATE
+	edit_mode = EDIT_MODES.SCALE
+	
+	
+	
+func _start_edit_mode_rotate(event, camera, fresh=true):
 	axis = AXIS_ENUM.Y
 	axis_local = false
 	
@@ -219,6 +212,16 @@ func _start_edit_mode_rotate(event, camera, fresh=true):
 	mouse_first_rotate_pos.x += 50
 	get_viewport().warp_mouse(mouse_first_rotate_pos)
 	first_draw = true
+	
+	# GSR Integration
+	var panel_gsr = panel.get_panel_data().gsr
+	gsr_plugin = Interop.get_plugin_or_null(self, "gsr")
+	if gsr_plugin and panel_gsr:
+		edit_mode = EDIT_MODES.GSR
+		gsr_plugin.external_request_manipulation(camera, "rs", [ghost], self, "gsr_manipulation_result")
+		return
+		
+	edit_mode = EDIT_MODES.ROTATE
 
 # FUNCTION handles IS NEEDED TO ALLOW OVERLAY DRAWING
 func handles(object):
@@ -347,36 +350,51 @@ func forward_spatial_gui_input(camera, event):
 							_start_edit_mode_rotate(event, camera)
 							
 					if event.scancode == KEY_X:
-						axis_local = false
-						axis = AXIS_ENUM.X
-						if event.shift:
-							rotate_ghost(axis, axis_local, -rotation_snap)
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							rotate_ghost(axis, axis_local, rotation_snap)
+							axis_local = false
+							axis = AXIS_ENUM.X
+							if event.shift:
+								rotate_ghost(axis, axis_local, -rotation_snap)
+							else:
+								rotate_ghost(axis, axis_local, rotation_snap)
 					if event.scancode == KEY_Y:
-						axis_local = false
-						if not z_up:
-							axis = AXIS_ENUM.Y
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							axis = AXIS_ENUM.Z
+							axis_local = false
+							if not z_up:
+								axis = AXIS_ENUM.Y
+							else:
+								axis = AXIS_ENUM.Z
+								
+							if event.shift:
+								rotate_ghost(axis, axis_local, -rotation_snap)
+							else:
+								rotate_ghost(axis, axis_local, rotation_snap)
 							
-						if event.shift:
-							rotate_ghost(axis, axis_local, -rotation_snap)
-						else:
-							rotate_ghost(axis, axis_local, rotation_snap)
-						
 					if event.scancode == KEY_Z:
-						axis_local = false
-						if not z_up:
-							axis = AXIS_ENUM.Z
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							axis = AXIS_ENUM.Y
+							axis_local = false
+							if not z_up:
+								axis = AXIS_ENUM.Z
+							else:
+								axis = AXIS_ENUM.Y
+								
+							if event.shift:
+								rotate_ghost(axis, axis_local, -rotation_snap)
+							else:
+								rotate_ghost(axis, axis_local, rotation_snap)
 							
-						if event.shift:
-							rotate_ghost(axis, axis_local, -rotation_snap)
-						else:
-							rotate_ghost(axis, axis_local, rotation_snap)
-						
 							
 				EDIT_MODES.SCALE:
 					if event.scancode == KEY_R:
@@ -387,74 +405,89 @@ func forward_spatial_gui_input(camera, event):
 							_start_edit_mode_rotate(event, camera, false)
 							
 					if event.scancode == KEY_X:
-						if event.shift:
-							if not axis == AXIS_ENUM.YZ:
-								axis = AXIS_ENUM.YZ
-								axis_local = false
-							else:
-								axis_local = not axis_local
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							if not axis == AXIS_ENUM.X:
-								axis = AXIS_ENUM.X
-								axis_local = false
+							if event.shift:
+								if not axis == AXIS_ENUM.YZ:
+									axis = AXIS_ENUM.YZ
+									axis_local = false
+								else:
+									axis_local = not axis_local
 							else:
-								axis_local = not axis_local
+								if not axis == AXIS_ENUM.X:
+									axis = AXIS_ENUM.X
+									axis_local = false
+								else:
+									axis_local = not axis_local
 					elif event.scancode == KEY_Y:
-						if not z_up:
-							if event.shift:
-								if not axis == AXIS_ENUM.XZ:
-									axis = AXIS_ENUM.XZ
-									axis_local = false
-								else:
-									axis_local = not axis_local
-							else:
-								if not axis == AXIS_ENUM.Y:
-									axis = AXIS_ENUM.Y
-									axis_local = false
-								else:
-									axis_local = not axis_local
-								
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							if event.shift:
-								if not axis == AXIS_ENUM.XY:
-									axis = AXIS_ENUM.XY
-									axis_local = false
+							if not z_up:
+								if event.shift:
+									if not axis == AXIS_ENUM.XZ:
+										axis = AXIS_ENUM.XZ
+										axis_local = false
+									else:
+										axis_local = not axis_local
 								else:
-									axis_local = not axis_local
+									if not axis == AXIS_ENUM.Y:
+										axis = AXIS_ENUM.Y
+										axis_local = false
+									else:
+										axis_local = not axis_local
+									
 							else:
-								if not axis == AXIS_ENUM.Z:
-									axis = AXIS_ENUM.Z
-									axis_local = false
+								if event.shift:
+									if not axis == AXIS_ENUM.XY:
+										axis = AXIS_ENUM.XY
+										axis_local = false
+									else:
+										axis_local = not axis_local
 								else:
-									axis_local = not axis_local
+									if not axis == AXIS_ENUM.Z:
+										axis = AXIS_ENUM.Z
+										axis_local = false
+									else:
+										axis_local = not axis_local
 					elif event.scancode == KEY_Z:
-						if not z_up:
-							if event.shift:
-								axis = AXIS_ENUM.XY
-								if not axis == AXIS_ENUM.XY:
-									axis = AXIS_ENUM.XY
-									axis_local = false
-								else:
-									axis_local = not axis_local
-							else:
-								if not axis == AXIS_ENUM.Z:
-									axis = AXIS_ENUM.Z
-									axis_local = false
-								else:
-									axis_local = not axis_local
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							if event.shift:
-								if not axis == AXIS_ENUM.XZ:
-									axis = AXIS_ENUM.XZ
-									axis_local = false
+							if not z_up:
+								if event.shift:
+									axis = AXIS_ENUM.XY
+									if not axis == AXIS_ENUM.XY:
+										axis = AXIS_ENUM.XY
+										axis_local = false
+									else:
+										axis_local = not axis_local
 								else:
-									axis_local = not axis_local
+									if not axis == AXIS_ENUM.Z:
+										axis = AXIS_ENUM.Z
+										axis_local = false
+									else:
+										axis_local = not axis_local
 							else:
-								if not axis == AXIS_ENUM.Y:
-									axis = AXIS_ENUM.Y
-									axis_local = false
+								if event.shift:
+									if not axis == AXIS_ENUM.XZ:
+										axis = AXIS_ENUM.XZ
+										axis_local = false
+									else:
+										axis_local = not axis_local
 								else:
-									axis_local = not axis_local
+									if not axis == AXIS_ENUM.Y:
+										axis = AXIS_ENUM.Y
+										axis_local = false
+									else:
+										axis_local = not axis_local
 					elif event.scancode == KEY_S:
 						if event.alt:
 							ghost.scale = Vector3(1,1,1)
@@ -472,39 +505,52 @@ func forward_spatial_gui_input(camera, event):
 							_start_edit_mode_scale(event, camera, false)
 							
 					if event.scancode == KEY_X:
-						if axis != AXIS_ENUM.X:
-							axis_local = false
-							axis = AXIS_ENUM.X
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							axis_local = not axis_local
-						
+							if axis != AXIS_ENUM.X:
+								axis_local = false
+								axis = AXIS_ENUM.X
+							else:
+								axis_local = not axis_local
 					elif event.scancode == KEY_Y:
-						if not z_up:
-							if axis != AXIS_ENUM.Y:
-								axis_local = false
-								axis = AXIS_ENUM.Y
-							else:
-								axis_local = not axis_local
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							if axis != AXIS_ENUM.Z:
-								axis_local = false
-								axis = AXIS_ENUM.Z
+							if not z_up:
+								if axis != AXIS_ENUM.Y:
+									axis_local = false
+									axis = AXIS_ENUM.Y
+								else:
+									axis_local = not axis_local
 							else:
-								axis_local = not axis_local
-						
+								if axis != AXIS_ENUM.Z:
+									axis_local = false
+									axis = AXIS_ENUM.Z
+								else:
+									axis_local = not axis_local
 					elif event.scancode == KEY_Z:
-						if not z_up:
-							if axis != AXIS_ENUM.Z:
-								axis_local = false
-								axis = AXIS_ENUM.Z
-							else:
-								axis_local = not axis_local
+						if event.control:
+							pass
+						elif event.alt:
+							pass
 						else:
-							if axis != AXIS_ENUM.Y:
-								axis_local = false
-								axis = AXIS_ENUM.Y
+							if not z_up:
+								if axis != AXIS_ENUM.Z:
+									axis_local = false
+									axis = AXIS_ENUM.Z
+								else:
+									axis_local = not axis_local
 							else:
-								axis_local = not axis_local
+								if axis != AXIS_ENUM.Y:
+									axis_local = false
+									axis = AXIS_ENUM.Y
+								else:
+									axis_local = not axis_local
 						
 					elif event.scancode == KEY_R:
 						if event.alt:
