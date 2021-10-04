@@ -8,7 +8,7 @@ func _ready():
 	pass # Replace with function body.
 
 func _input(event):
-	if event is InputEventKey and event.scancode == KEY_ENTER and not event.echo and visible:
+	if event is InputEventKey and (event.scancode == KEY_ENTER or event.scancode == KEY_KP_ENTER )and not event.echo and visible:
 		emit_signal("confirmed")
 		yield(get_tree().create_timer(0.1), "timeout")
 		hide()

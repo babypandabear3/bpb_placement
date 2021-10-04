@@ -50,6 +50,7 @@ var axis = AXIS_ENUM.XYZ
 var axis_local = true
 
 var use_ghost_last_pos = false
+var ghost_prepared_pos = Vector3()
 var ghost_last_pos = Vector3()
 var mouse_last_ghost_pos = Vector2()
 var mouse_last_pos = Vector2()
@@ -69,6 +70,7 @@ var timer_click = Timer.new()
 var allow_rapid_paint = true
 
 var camera_last
+var overlay_pos_top_left = Vector2()
 
 onready var transform_menu = get_editor_interface().get_editor_viewport().get_child(1).get_child(0) #.get_child(18)
 #Popupmenu has a set_item_disabled. So get the popupmenu child of the menu button and use that on the first item.
@@ -245,6 +247,8 @@ func forward_spatial_gui_input(camera, event):
 		# GHOST LOGIC
 		if ghost != null:
 			match edit_mode:
+				EDIT_MODES.NONE:
+					set_init_ghost_pos()
 				EDIT_MODES.NORMAL:
 					var panel_data = panel.get_current_tab_data()
 					var tab_data = panel_data["tabdata"]
@@ -314,7 +318,6 @@ func forward_spatial_gui_input(camera, event):
 		if event.is_pressed():
 			if event.scancode == KEY_SPACE and event.control :
 				panel.toggle_paint()
-				
 			
 			var panel_data = panel.get_current_tab_data()
 			var tab_data = panel_data["tabdata"]
@@ -323,7 +326,6 @@ func forward_spatial_gui_input(camera, event):
 				
 			match edit_mode :
 				EDIT_MODES.NORMAL:
-						
 					if event.scancode == KEY_PERIOD:
 						panel.grid_level_raised()
 						
@@ -749,6 +751,10 @@ func _on_timer_click_timeout():
 	pass
 	
 func forward_spatial_draw_over_viewport(overlay):
+	var local_pos = overlay.get_local_mouse_position()
+	var global_pos = overlay.get_global_mouse_position()
+	overlay_pos_top_left = global_pos - local_pos
+	
 	if edit_mode == EDIT_MODES.SCALE or edit_mode == EDIT_MODES.ROTATE:
 		var color0 = Color(0.0, 0.0, 0.0, 0.1)
 		if first_draw:
@@ -786,10 +792,12 @@ func start_painting():
 	Interop.grab_full_input(self)
 	edit_mode = EDIT_MODES.NORMAL
 	
+	
 func stop_painting():
 	Interop.release_full_input(self)
 	edit_mode = EDIT_MODES.NONE
-	ghost.hide()
+	if ghost:
+		ghost.hide()
 	update_overlays()
 	
 	
@@ -849,3 +857,33 @@ func draw_axis(control, paxis, plocal):
 	control.draw_line(start, end, color, line_width)
 	control.draw_line(start, end2, color, line_width)
 	
+func set_init_ghost_pos():
+	var panel_data = panel.get_current_tab_data()
+	if not panel_data.has("tabdata"):
+		return
+	var tab_data = panel_data["tabdata"]
+	var ray_result = null
+	var event_position = get_viewport().get_mouse_position() - overlay_pos_top_left
+	if tab_data.chk_grid:
+		ray_result = _intersect_with_plane(camera_last, event_position, float(tab_data.le_gridsize), panel_data["paneldata"].grid_level, tab_data.opt_grid)
+	else:
+		ray_result = _intersect_with_colliders(camera_last, event_position)
+	if ray_result == null:
+		return false
+	else:
+		if tab_data.y_normal:
+			var scale_prev = ghost.scale
+			var new_basis = ghost.global_transform.basis
+			new_basis.y = ray_result.normal
+			new_basis.x = ((new_basis.x).slide(ray_result.normal)).normalized()
+			new_basis.z = new_basis.x.cross(new_basis.y).normalized()
+			new_basis = new_basis.orthonormalized()
+			new_basis.x *= scale_prev.x
+			new_basis.y *= scale_prev.y
+			new_basis.z *= scale_prev.z
+			ghost.global_transform.basis = new_basis
+		ghost.global_transform.origin = ray_result.position
+				
+func kill_ghost():
+	if ghost:
+		ghost = null

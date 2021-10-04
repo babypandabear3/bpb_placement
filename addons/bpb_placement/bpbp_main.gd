@@ -45,8 +45,15 @@ func _ready():
 	add_child(dialog_tab_title)
 	
 	init_context_menu()
-	button_paint.connect("toggled", self, "toggle_paint_button")
 	
+func _enabled_disabled_paint_button():
+	if tab.get_tab_count() == 0:
+		button_paint.disabled = true
+	else:
+		button_paint.disabled = false
+		
+func _input(event):
+	_enabled_disabled_paint_button()
 	
 func init_context_menu():
 	context_menu.connect("index_pressed", self, "_on_context_menu_index_pressed")
@@ -133,9 +140,10 @@ func _float_or_zero(par):
 	
 func get_current_tab_data():
 	var tmp = {}
-	tmp["title"] = tab.get_tab_title(tab.current_tab)
-	tmp["tabdata"] = tab.get_tab_control(tab.current_tab).get_data()
-	tmp["paneldata"] = get_panel_data()
+	if tab.get_tab_count() > 0:
+		tmp["title"] = tab.get_tab_title(tab.current_tab)
+		tmp["tabdata"] = tab.get_tab_control(tab.current_tab).get_data()
+		tmp["paneldata"] = get_panel_data()
 	return tmp
 
 func _exit_tree():
@@ -160,20 +168,13 @@ func _on_ConfirmationDialog_confirmed():
 	var current_tab = tab.get_current_tab_control()
 	tab.remove_child(current_tab)
 	current_tab.queue_free()
-
-
-func toggle_paint_button(button_pressed):
-	emit_paint_signal()
+	_enabled_disabled_paint_button()
+	plugin_node.kill_ghost()
 	
 func toggle_paint():
 	button_paint.pressed = not button_paint.pressed
-	emit_paint_signal()
-	
-func emit_paint_signal():
-	if button_paint.pressed:
-		emit_signal("ghost_made")
-	else:
-		emit_signal("ghost_removed")
+	_on_btn_paint_toggled(button_paint.pressed)
+
 
 func grid_level_raised():
 	le_grid_level.text = str(_float_or_zero(le_grid_level.text) + 1)

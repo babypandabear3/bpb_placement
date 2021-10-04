@@ -41,6 +41,7 @@ size_flags_horizontal = 3
 [node name="btn_paint" type="CheckButton" parent="Panel/VBoxContainer/HBoxContainer"]
 margin_right = 112.0
 margin_bottom = 40.0
+rect_min_size = Vector2( 112, 40 )
 text = "Paint"
 
 [node name="btn_add" type="Button" parent="Panel/VBoxContainer/HBoxContainer"]
@@ -82,6 +83,7 @@ __meta__ = {
 margin_left = 467.0
 margin_right = 544.0
 margin_bottom = 40.0
+pressed = true
 text = "Z for up"
 
 [node name="chk_gsr" type="CheckBox" parent="Panel/VBoxContainer/HBoxContainer"]
@@ -93,7 +95,7 @@ text = "GSR Integration"
 [node name="TabContainer" type="TabContainer" parent="Panel/VBoxContainer"]
 margin_top = 44.0
 margin_right = 1024.0
-margin_bottom = 200.0
+margin_bottom = 304.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
