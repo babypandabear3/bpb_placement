@@ -4,6 +4,7 @@ extends EditorPlugin
 signal ghost_made
 signal ghost_removed
 
+const GRID_OVERLAY_TSCN = preload("res://addons/bpb_placement/grid_overlay.tscn")
 const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
 var Interop = preload("res://addons/bpb_placement/interop.gd")
 
@@ -45,7 +46,7 @@ var plane_xz = Plane(Plane.PLANE_XZ)
 var plane_xy = Plane(Plane.PLANE_XY)
 var plane_yz = Plane(Plane.PLANE_YZ)
 
-var edit_mode = EDIT_MODES.NORMAL
+var edit_mode = EDIT_MODES.NONE
 var axis = AXIS_ENUM.XYZ
 var axis_local = true
 
@@ -61,6 +62,7 @@ var ghost_init_viewport_pos = Vector2()
 var ghost_init_basis
 var ghost_init_rotation
 
+var grid_overlay
 
 var first_draw = false
 var circle_center = Vector2()
@@ -93,6 +95,9 @@ func _enter_tree():
 	timer_click.one_shot = true
 	timer_click.connect("timeout", self, "_on_timer_click_timeout")
 	edit_mode = EDIT_MODES.NONE
+	
+	grid_overlay = GRID_OVERLAY_TSCN.instance()
+	add_child(grid_overlay)
 	
 func _exit_tree():
 	Interop.deregister(self) 
@@ -230,6 +235,10 @@ func handles(object):
 	if object != null:
 		if object is Spatial:
 			return true
+			
+	if edit_mode != EDIT_MODES.NONE:
+		return true
+
 	return object == null
 
 func forward_spatial_gui_input(camera, event):
@@ -243,16 +252,24 @@ func forward_spatial_gui_input(camera, event):
 	update_overlays()
 	# SHOW / HIDE GHOST
 	if ghost != null:
-		if panel.is_painting() :
-			ghost.show()
-		else:
+		if edit_mode == EDIT_MODES.NONE:
 			ghost.hide()
+			grid_overlay.hide()
+		else:
+			#WORKAROUND JUST IN CASE GHOST IS DELETED SOMEWHERE ELSE, SET IT TO NULL
+			var wr = weakref(ghost)
+			if (!wr.get_ref()):
+				ghost = null
+				grid_overlay.hide()
+			else:
+				ghost.show()
 			
 	if event is InputEventMouseMotion:
 		# GHOST LOGIC
 		if ghost != null:
 			match edit_mode:
 				EDIT_MODES.NONE:
+					ghost.hide()
 					set_init_ghost_pos()
 				EDIT_MODES.NORMAL:
 					var panel_data = panel.get_current_tab_data()
@@ -277,7 +294,10 @@ func forward_spatial_gui_input(camera, event):
 							new_basis.z *= scale_prev.z
 							ghost.global_transform.basis = new_basis
 						ghost.global_transform.origin = ray_result.position
-				
+						if tab_data.chk_grid:
+							update_grid_overlay(ray_result.position, tab_data)
+						else:
+							grid_overlay.hide()
 				EDIT_MODES.SCALE:
 					var cur_mouse = get_viewport().get_mouse_position()
 					var dist = mouse_last_pos.distance_to(cur_mouse) / 100
@@ -703,7 +723,7 @@ func make_ghost():
 		ghost.queue_free()
 	ghost = load(path).instance()
 	get_tree().get_edited_scene_root().add_child(ghost)
-	edit_mode = EDIT_MODES.NORMAL
+	ghost.hide()
 
 func remove_ghost():
 	if ghost:
@@ -853,6 +873,8 @@ func stop_painting():
 	edit_mode = EDIT_MODES.NONE
 	if ghost:
 		ghost.hide()
+	if grid_overlay:
+		grid_overlay.hide()
 	update_overlays()
 	
 	
@@ -942,3 +964,9 @@ func set_init_ghost_pos():
 func kill_ghost():
 	if ghost:
 		ghost = null
+
+func update_grid_overlay(pposition, ptab_data):
+	grid_overlay.show()
+	grid_overlay.global_transform.origin = pposition
+	grid_overlay.set_grid_param(ptab_data.le_gridsize, ptab_data.opt_grid)
+	
