@@ -232,12 +232,12 @@ func _start_edit_mode_rotate(event, camera, fresh=true):
 
 # FUNCTION handles IS NEEDED TO ALLOW OVERLAY DRAWING
 func handles(object):
+	if edit_mode != EDIT_MODES.NONE:
+		return true
+		
 	if object != null:
 		if object is Spatial:
 			return true
-			
-	if edit_mode != EDIT_MODES.NONE:
-		return true
 
 	return object == null
 
