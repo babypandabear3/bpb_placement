@@ -134,9 +134,10 @@ func get_panel_data():
 	return panel_data
 	
 func _float_or_zero(par):
-	if par.rstrip(" ") == "":
-		par = "0"
-	return float(par)
+	if str(par).is_valid_float():
+		return float(par)
+	else:
+		return 0.0
 	
 func get_current_tab_data():
 	var tmp = {}
