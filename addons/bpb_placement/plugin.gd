@@ -98,6 +98,7 @@ func _enter_tree():
 	
 	grid_overlay = GRID_OVERLAY_TSCN.instance()
 	add_child(grid_overlay)
+	grid_overlay.hide()
 	
 func _exit_tree():
 	Interop.deregister(self) 
@@ -346,7 +347,7 @@ func forward_spatial_gui_input(camera, event):
 			
 			var panel_data = panel.get_current_tab_data()
 			var tab_data = panel_data["tabdata"]
-			var rotation_snap = deg2rad(float(panel_data["paneldata"].rotation_snap))
+			var rotation_snap = float(panel_data["paneldata"].rotation_snap)
 			var z_up = panel_data["paneldata"].z_up
 				
 			match edit_mode :
