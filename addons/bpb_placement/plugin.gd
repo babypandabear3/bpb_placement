@@ -8,6 +8,8 @@ const GRID_OVERLAY_TSCN = preload("res://addons/bpb_placement/grid_overlay.tscn"
 const PANEL_DEFAULT = preload("res://addons/bpb_placement/bpbp_main.tscn")
 var Interop = preload("res://addons/bpb_placement/interop.gd")
 
+var ghost_ids = []
+
 enum EDIT_MODES {
 	NONE,
 	NORMAL,
@@ -98,14 +100,18 @@ func _enter_tree():
 	
 	grid_overlay = GRID_OVERLAY_TSCN.instance()
 	add_child(grid_overlay)
-	grid_overlay.hide()
+	
+	connect("scene_changed", self, "_on_scene_changed")
+	connect("scene_closed", self, "_on_scene_closed")
 	
 func _exit_tree():
 	Interop.deregister(self) 
 	hide_bottom_panel()
 	remove_control_from_bottom_panel(panel)
-	if ghost:
-		ghost.queue_free()
+	for i in ghost_ids:
+		var o = instance_from_id(i)
+		if o:
+			o.free()
 	panel.queue_free()
 
 func _ready():
@@ -347,7 +353,7 @@ func forward_spatial_gui_input(camera, event):
 			
 			var panel_data = panel.get_current_tab_data()
 			var tab_data = panel_data["tabdata"]
-			var rotation_snap = float(panel_data["paneldata"].rotation_snap)
+			var rotation_snap = deg2rad(float(panel_data["paneldata"].rotation_snap))
 			var z_up = panel_data["paneldata"].z_up
 				
 			match edit_mode :
@@ -717,14 +723,17 @@ func get_undo_redo_stack():
 	return get_undo_redo()
 
 func make_ghost():
-	var path = panel.get_selected_obj()
-	if path == null:
-		return
-	if ghost:
-		ghost.queue_free()
-	ghost = load(path).instance()
-	get_tree().get_edited_scene_root().add_child(ghost)
-	ghost.hide()
+	if get_tree().get_edited_scene_root():
+		var path = panel.get_selected_obj()
+		if path == null:
+			return
+		if ghost:
+			ghost.queue_free()
+		ghost = load(path).instance()
+		get_tree().get_edited_scene_root().add_child(ghost)
+		ghost.hide()
+		ghost_ids.append(int(ghost.get_instance_id()))
+	
 
 func remove_ghost():
 	if ghost:
@@ -971,3 +980,12 @@ func update_grid_overlay(pposition, ptab_data):
 	grid_overlay.global_transform.origin = pposition
 	grid_overlay.set_grid_param(ptab_data.le_gridsize, ptab_data.opt_grid)
 	
+func _on_scene_changed(par):
+	panel.button_paint.pressed = false
+	stop_painting()
+	kill_ghost()
+	
+func _on_scene_closed(par):
+	panel.button_paint.pressed = false
+	stop_painting()
+	kill_ghost()

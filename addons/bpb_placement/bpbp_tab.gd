@@ -95,8 +95,16 @@ func _on_resource_preview(path, texture, user_data):
 	for i in item_list.get_item_count():
 		if item_list.get_item_text(i) == path:
 			item_list.set_item_icon(i, texture)
-			item_list.set_item_text(i, "")
+			#item_list.set_item_text(i, "")
+			var substr_start = path.find_last("/") + 1
+			item_list.set_item_text(i, path.substr(substr_start, path.length()))
 
+func _float_or_zero(par):
+	if str(par).is_valid_float():
+		return float(par)
+	else:
+		return 0.0
+		
 func get_data():
 	var data = {}
 	var itemlist_data = []
@@ -107,7 +115,7 @@ func get_data():
 	data.chk_rapid = node_chk_rapid.pressed
 	data.chk_grid = node_chk_grid.pressed
 	data.opt_grid = node_opt_grid.selected
-	data.le_gridsize = node_le_gridsize.text
+	data.le_gridsize = _float_or_zero(node_le_gridsize.text)
 	data.chk_rot_x = node_chk_rot_x.pressed
 	data.chk_rot_y = node_chk_rot_y.pressed
 	data.chk_rot_z = node_chk_rot_z.pressed
@@ -115,16 +123,16 @@ func get_data():
 	data.y_normal = node_chk_y_normal.pressed
 	
 	data.chk_scale_x = node_chk_scale_x.pressed
-	data.le_scale_x_min = node_le_scale_x_min.text
-	data.le_scale_x_max = node_le_scale_x_max.text
+	data.le_scale_x_min = _float_or_zero(node_le_scale_x_min.text)
+	data.le_scale_x_max = _float_or_zero(node_le_scale_x_max.text)
 	
 	data.chk_scale_y = node_chk_scale_y.pressed
-	data.le_scale_y_min = node_le_scale_y_min.text
-	data.le_scale_y_max = node_le_scale_y_max.text
+	data.le_scale_y_min = _float_or_zero(node_le_scale_y_min.text)
+	data.le_scale_y_max = _float_or_zero(node_le_scale_y_max.text)
 	
 	data.chk_scale_z = node_chk_scale_z.pressed
-	data.le_scale_z_min = node_le_scale_z_min.text
-	data.le_scale_z_max = node_le_scale_z_max.text
+	data.le_scale_z_min = _float_or_zero(node_le_scale_z_min.text)
+	data.le_scale_z_max = _float_or_zero(node_le_scale_z_max.text)
 
 	return data
 	
@@ -132,7 +140,7 @@ func set_data(data):
 	node_chk_rapid.pressed = data.chk_rapid
 	node_chk_grid.pressed = data.chk_grid
 	node_opt_grid.selected = data.opt_grid 
-	node_le_gridsize.text = data.le_gridsize 
+	node_le_gridsize.text = str(data.le_gridsize)
 	node_chk_rot_x.pressed = data.chk_rot_x 
 	node_chk_rot_y.pressed = data.chk_rot_y 
 	node_chk_rot_z.pressed = data.chk_rot_z 
@@ -140,16 +148,16 @@ func set_data(data):
 	node_chk_y_normal.pressed = data.y_normal 
 	
 	node_chk_scale_x.pressed = data.chk_scale_x 
-	node_le_scale_x_min.text = data.le_scale_x_min 
-	node_le_scale_x_max.text = data.le_scale_x_max 
+	node_le_scale_x_min.text = str(data.le_scale_x_min)
+	node_le_scale_x_max.text = str(data.le_scale_x_max)
 	
 	node_chk_scale_y.pressed = data.chk_scale_y 
-	node_le_scale_y_min.text = data.le_scale_y_min 
-	node_le_scale_y_max.text = data.le_scale_y_max 
+	node_le_scale_y_min.text = str(data.le_scale_y_min)
+	node_le_scale_y_max.text = str(data.le_scale_y_max)
 	
 	node_chk_scale_z.pressed = data.chk_scale_z 
-	node_le_scale_z_min.text = data.le_scale_z_min 
-	node_le_scale_z_max.text = data.le_scale_z_max 
+	node_le_scale_z_min.text = str(data.le_scale_z_min)
+	node_le_scale_z_max.text = str(data.le_scale_z_max)
 	
 	files = data.itemlist_data
 	update_item_list()
